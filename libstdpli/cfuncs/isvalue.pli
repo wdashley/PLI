@@ -1,0 +1,256 @@
+/*----------------------------------------------------------------------------*/
+/* File:       isvalue.pli (package)                                          */
+/* Author:     W. David Ashley                                                */
+/* Date:       2023-11-16                                                     */
+/* Copyright:  Copyright © 2023 W. David Ashley                               */
+/*             This source file is goverened by the The Open Software License  */
+/*             3.0 which is included with the source code distribution.       */
+/* Notes:      This PL/I source file is a package containing all th C is****   */
+/*             function analogs in PL/I.                                      */
+/* Updates:    2023-11-16 WDA. Initial release.                               */
+/*----------------------------------------------------------------------------*/
+
+
+isvalue: package exports(*);
+
+dcl pos builtin;
+
+
+/*----------------------------------------------------------------------------*/
+/* Procedure:  isalnum                                                        */
+/* Notes:      Test a character to determine if it is an alpha  or a numeric  */
+/*             character.                                                     */
+/*----------------------------------------------------------------------------*/
+
+isalnum: proc(testchar) returns(char(1));
+
+dcl testchar char(1);
+
+/* code */
+if testchar = isalpha(testchar) then return(testchar);
+else if testchar = isdigit(testchar) then return(testchar);
+else return('00'x);
+
+end isalnum;
+
+
+/*----------------------------------------------------------------------------*/
+/* Procedure:  isalpha                                                        */
+/* Notes:      Test a character to determine if it is an alpha character.     */
+/*----------------------------------------------------------------------------*/
+
+isalpha: proc(testchar) returns(char(1));
+
+dcl testchar char(1);
+
+/* code */
+if testchar >= 'a' & testchar <= 'z' then return(testchar);
+else if testchar >= 'A' & testchar <= 'Z' then return(testchar);
+else return('00'x);
+
+end isalpha;
+
+
+/*----------------------------------------------------------------------------*/
+/* Procedure:  isblank                                                        */
+/* Notes:      Test a character to determine if it is a blank character.      */
+/*----------------------------------------------------------------------------*/
+
+isblank: proc(testchar) returns(char(1));
+
+dcl testchar char(1);
+
+/* code */
+if testchar = ' ' then return(testchar);
+else return('00'x);
+
+end isblank;
+
+
+/*----------------------------------------------------------------------------*/
+/* Procedure:  isdigit                                                        */
+/* Notes:      Test a character to determine if it is a digit character.      */
+/*----------------------------------------------------------------------------*/
+
+isdigit: proc(testchar) returns(char(1));
+
+dcl testchar char(1);
+
+/* code */
+if testchar >= '0' & testchar <= '9' then return(testchar);
+else return('00'x);
+
+end isdigit;
+
+
+/*----------------------------------------------------------------------------*/
+/* Procedure:  islower                                                        */
+/* Notes:      Test a character to determine if it is a lower case            */
+/*             alpha character.                                               */
+/*----------------------------------------------------------------------------*/
+
+islower: proc(testchar) returns(char(1));
+
+dcl testchar char(1);
+
+/* code */
+if testchar >= 'a' & testchar <= 'z' then return(testchar);
+else return('00'x);
+
+end islower;
+
+
+/*----------------------------------------------------------------------------*/
+/* Procedure:  isprint                                                        */
+/* Notes:      Test a character to determine if it is a printable.            */
+/*----------------------------------------------------------------------------*/
+
+isprint: proc(testchar) returns(char(1));
+
+dcl testchar char(1);
+
+/* code */
+if testchar >= ' ' & testchar <= '~' then return(testchar);
+else return('00'x);
+
+end isprint;
+
+
+/*----------------------------------------------------------------------------*/
+/* Procedure:  ispunct                                                        */
+/* Notes:      Test a character to determine if it is a ounctation character. */
+/*----------------------------------------------------------------------------*/
+
+ispunct: proc(testchar) returns(char(1));
+
+dcl testchar char(1);
+
+/* code */
+if testchar >= '!' & testchar <= '/' then return(testchar);
+else if testchar >= ':' & testchar <= '@' then return(testchar);
+else if testchar >= '[' & testchar <= '`' then return(testchar);
+else if testchar >= '{' & testchar <= '~' then return(testchar);
+else return('00'x);
+
+end ispunct;
+
+
+/*----------------------------------------------------------------------------*/
+/* Procedure:  isupper                                                        */
+/* Notes:      Test a character to determine if it is an uooer case           */
+/*             alpha character.                                               */
+/*----------------------------------------------------------------------------*/
+
+isupper: proc(testchar) returns(char(1));
+
+dcl testchar char(1);
+
+/* code */
+if testchar >= 'A' & testchar <= 'Z' then return(testchar);
+else return('00'x);
+
+end isupper;
+
+
+/*----------------------------------------------------------------------------*/
+/* Procedure:  isxdigit                                                       */
+/* Notes:      Test a character to determine if it is a hex character.        */
+/*----------------------------------------------------------------------------*/
+
+isxdigit: proc(testchar) returns(char(1));
+
+dcl testchar char(1);
+
+/* code */
+if testchar >= 'a' & testchar <= 'f' then return(testchar);
+else if testchar >= 'A' & testchar <= 'F' then return(testchar);
+else if testchar >= '0' & testchar <= '9' then return(testchar);
+else return('00'x);
+
+end isxdigit;
+
+
+/*----------------------------------------------------------------------------*/
+/* Procedure:  ismathsym                                                      */
+/* Notes:      Test a character to determine if it is a math symbol.          */
+/*----------------------------------------------------------------------------*/
+
+ismathsym: proc(testchar) returns(char(1));
+
+dcl testchar char(1);
+
+/* code */
+if index('+-*/=().', testchar) > 0 then return(testchar);
+else return('00'x);
+
+end ismathsym;
+
+
+/*----------------------------------------------------------------------------*/
+/* Procedure:  istab                                                          */
+/* Notes:      Test a character to determine if it is a tab.                  */
+/*----------------------------------------------------------------------------*/
+
+istab: proc(testchar) returns(char(1));
+
+dcl testchar char(1);
+dcl htab char(1) init('09'x);  /* horizontal tab */
+dcl vtab char(1) init('0B'x);  /* vertical tab */
+
+/* code */
+if testchar = htab then return(testchar);
+else if testchar = vtab then return(testchar);
+else return('00'x);
+
+end istab;
+
+
+/*----------------------------------------------------------------------------*/
+/* Procedure:  islf                                                           */
+/* Notes:      Test a character to determine if it is a linefeeb.             */
+/*----------------------------------------------------------------------------*/
+
+islf: proc(testchar) returns(char(1));
+
+dcl testchar char(1);
+
+/* code */
+if testchar = '0A'x then return(testchar);
+else return('00'x);
+
+end islf;
+
+
+/*----------------------------------------------------------------------------*/
+/* Procedure:  iscr                                                           */
+/* Notes:      Test a character to determine if it is a carriage return.      */
+/*----------------------------------------------------------------------------*/
+
+iscr: proc(testchar) returns(char(1));
+
+dcl testchar char(1);
+
+/* code */
+if testchar = '0D'x then return(testchar);
+else return('00'x);
+
+end iscr;
+
+
+/*----------------------------------------------------------------------------*/
+/* Procedure:  isbreak                                                        */
+/* Notes:      Test a character to determine if it is an underscore.          */
+/*----------------------------------------------------------------------------*/
+
+isbreak: proc(testchar) returns(char(1));
+
+dcl testchar char(1);
+
+/* code */
+if testchar = '_' then return(testchar);
+else return('00'x);
+
+end isbreak;
+
+end isvalue;
+

@@ -1,0 +1,127 @@
+
+osentry: proc() options(main);
+
+%include 'stat.inc';
+%include 'sysinfo.inc';
+
+
+dcl sysprint file print env(interactive);
+dcl sysin file input env(interactive);
+dcl ltrim builtin;
+dcl retcode fixed bin(31);
+dcl answer char(30) var;
+dcl symlink entry(char(*), char(*)) returns(fixed bin(31));
+dcl unlink entry(char(*)) returns(fixed bin(31));
+dcl chdir entry(char(*)) returns(fixed bin(31));
+dcl getcwd entry() returns(char(4096) var);
+dcl getuid entry() returns(fixed bin(31));
+dcl getgid entry() returns(fixed bin(31));
+dcl geteuid entry() returns(fixed bin(31));
+dcl getegid entry() returns(fixed bin(31));
+dcl mkdir entry(char(*), fixed bin(31)) returns(fixed bin(31));
+dcl rmdir entry(char(*)) returns(fixed bin(31));
+dcl stat entry(char(*), pointer) returns(fixed bin(31));
+dcl sysinfo entry(pointer) returns(fixed bin(31));
+dcl opendir entry(char(*)) returns(pointer);
+dcl getdirentry entry(pointer) returns(char(256) var);
+dcl dirent char(256) var;
+dcl retstr char(4096) var;
+dcl retc fixed bin(31);
+dcl p pointer;
+
+put skip edit('Starting tests.') (a);
+
+retcode = symlink('/home/dashley/ad/pli/libcfuncspli', '/home/dashley/ad/pli/libcfuncspli/filesys/temp');
+put skip edit('Return code from symlink() was ', ltrim(retcode)) (a,a);
+put edit('Hit Enter to continue: ') (a);
+get edit(answer) (a);
+
+retcode = unlink('/home/dashley/ad/pli/libcfuncspli/filesys/temp');
+put skip edit('Return code from unlink() was ', ltrim(retcode)) (a,a);
+put edit('Hit Enter to continue: ') (a);
+get edit(answer) (a);
+
+retstr = getcwd();
+put skip edit('The current workiking directory is ', retstr) (a,a);
+
+retstr = chdir('..');
+retstr = getcwd();
+put skip edit('After changing the directory, the current workiking directory is ', retstr) (a,a);
+retstr = chdir('/home/dashley/ad/pli/libcfuncspli/filesys');
+
+retcode = getuid();
+put skip edit('The current user id is ', ltrim(retcode)) (a,a);
+
+retcode = getuid();
+put skip edit('The current group id is ', ltrim(retcode)) (a,a);
+
+retcode = geteuid();
+put skip edit('The current effective user id is ', ltrim(retcode)) (a,a);
+
+retcode = getegid();
+put skip edit('The current effevtive group id is ', ltrim(retcode)) (a,a);
+
+retcode = mkdir('/home/dashley/ad/pli/libcfuncspli/filesys/temp', 0755);
+put skip edit('The mkdir() return code is ', ltrim(retcode)) (a,a);
+put edit('Hit Enter to continue: ') (a);
+get edit(answer) (a);
+
+retcode = rmdir('/home/dashley/ad/pli/libcfuncspli/filesys/temp');
+put skip edit('The rmdir return code is ', ltrim(retcode)) (a,a);
+
+allocate stat64;
+retcode = stat('/home/dashley/ad/pli/libcfuncspli/filesys/filesys.pli', addr(stat64));
+put skip edit('The stat() return code is ', ltrim(retcode)) (a,a);
+/* put edit('The dev is ', ltrim(stat64.st_dev)) (a,a); */
+put edit('The ino is ', ltrim(stat64.st_ino)) (a,a);
+put edit('The mode is ', ltrim(stat64.st_mode)) (a,a);
+put edit('The nlink is ', ltrim(stat64.st_nlink)) (a,a);
+put edit('The uid is ', ltrim(stat64.st_uid)) (a,a);
+put edit('The gid is ', ltrim(stat64.st_gid)) (a,a);
+/* put edit('The rdev is ', ltrim(stat64.st_rdev)) (a,a); */
+put edit('The size is ', ltrim(stat64.st_size)) (a,a);
+put edit('The blksize is ', ltrim(stat64.st_blksize)) (a,a);
+/* put edit('The blocks is ', ltrim(stat64.st_blocks)) (a,a); */
+put edit('The atime is ', ltrim(stat64.st_atime)) (a,a);
+put edit('The atime_nsec is ', ltrim(stat64.st_atime_nsec)) (a,a);
+put edit('The mtime is ', ltrim(stat64.st_mtime)) (a,a);
+put edit('The mtime_nsec is ', ltrim(stat64.st_mtime_nsec)) (a,a);
+put edit('The ctime is ', ltrim(stat64.st_ctime)) (a,a);
+put edit('The ctime_nsec is ', ltrim(stat64.st_ctime_nsec)) (a,a);
+
+allocate sysinfo_32;
+retcode = sysinfo(addr(sysinfo_32));
+put skip edit('The sysinfo() return code is ', ltrim(retcode)) (a,a);
+put edit('The uptime is ', ltrim(sysinfo_32.uptime)) (a,a);
+put edit('The loads 1 minute average is ', ltrim(sysinfo_32.loads(1))) (a,a);
+put edit('The loads 5 minute average is ', ltrim(sysinfo_32.loads(2))) (a,a);
+put edit('The loads 15 minute average is ', ltrim(sysinfo_32.loads(3))) (a,a);
+put edit('The totalram is ', ltrim(sysinfo_32.totalram)) (a,a);
+put edit('The freeram is ', ltrim(sysinfo_32.freeram)) (a,a);
+put edit('The sharedram is ', ltrim(sysinfo_32.sharedram)) (a,a);
+put edit('The bufferram is ', ltrim(sysinfo_32.bufferram)) (a,a);
+put edit('The totalswap is ', ltrim(sysinfo_32.totalswap)) (a,a);
+put edit('The freeswap is ', ltrim(sysinfo_32.freeswap)) (a,a);
+put edit('The procs is ', ltrim(sysinfo_32.procs)) (a,a);
+put edit('The totalhigh is ', ltrim(sysinfo_32.totalhigh)) (a,a);
+put edit('The freehigh is ', ltrim(sysinfo_32.freehigh)) (a,a);
+put edit('The mem_unit is ', ltrim(sysinfo_32.mem_unit)) (a,a);
+
+put skip edit('Getting current directory.') (a);
+p = opendir('.');
+if p = NULL then do;
+    put edit('No such directory.') (a);
+    end;
+else do;
+    dirent = getdirentry(p);
+    do while(dirent != '');
+        put edit(dirent) (a);
+        dirent = getdirentry(p);
+        end;
+    end;
+
+put skip edit('Finished.') (a);
+return;
+
+end osentry;
+

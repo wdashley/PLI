@@ -1,0 +1,683 @@
+/*----------------------------------------------------------------------------*/
+/* File:       strfuncs.pli (package)                                         */
+/* Author:     W. David Ashley                                                */
+/* Date:       2023-11-16                                                     */
+/* Copyright:  Copyright © 2023 W. David Ashley                               */
+/*             This source file is goverened by the The Open Software License  */
+/*             3.0 which is included with the source code distribution.       */
+/* Notes:      This PL/I source file is a package containing additional string */
+/*             function from Rexx and other places in PL/I.                   */
+/* Updates:    2023-11-16 WDA. Initial release.                               */
+/*----------------------------------------------------------------------------*/
+
+
+strfuncs: package exports(*);
+
+/* Since the following string is in static storage it wiil appear in the */
+/* program executable as readable text.                                  */
+dcl cpyrght  static char(90) varying init(
+              'Copyright © 2023 W. David Ashley. All rights reserved.');
+
+
+/******************************************************************************
+ * Routine:    b2x
+ * Notes:      Convert a bitstring to its corresponding hex value.
+ ******************************************************************************/
+
+b2x: proc(bitstr) returns(char(100) varying);
+
+dcl bitstr   char(*);
+dcl retstr   char(100) varying init('');
+dcl remainder fixed bin(15);
+dcl ctr1     fixed bin(15);
+dcl ctr2     fixed bin(15);
+dcl temp     bit(8) based(ptr1);
+dcl ftemp    unsigned fixed bin(7);
+dcl ctemp    char(1);
+dcl ptr1     ptr;
+dcl substr   builtin;
+dcl addr     builtin;
+dcl d2c      entry(fixed bin(7)) returns(char(1));
+
+ptr1 = addr(ftemp);
+ctr1 = length(bitstr);
+do while (ctr1 > 0);
+   ftemp = 0;
+   ctr2 = 8;
+   do while (ctr2 <= 8 & ctr2 >= 5);
+      if substr(bitstr, ctr1, 1) != ' ' then do;
+         substr(ptr1 -> temp, ctr2, 1) = substr(bitstr, ctr1, 1);
+         ctr2 = ctr2 - 1;
+         end;
+      ctr1 = ctr1 - 1;
+      end;
+   if ftemp >= 0 & ftemp <= 9 then ftemp = ftemp + 48;
+   else ftemp = ftemp + 55;
+   retstr = d2c(ftemp) || retstr;
+   end;
+
+return(retstr);
+
+end b2x;
+
+
+/******************************************************************************
+ * Routine:    c2d
+ * Notes:      Cinvert a single character to its decimal value.
+ ******************************************************************************/
+
+c2d: proc(args) returns(fixed bin(7));
+
+dcl args     char(1);
+dcl decnum   fixed bin(7) based(p);
+dcl p        ptr;
+
+p = addr(args);
+
+return(p->decnum);
+
+end c2d;
+
+
+/******************************************************************************
+ * Routine:    c2x
+ * Notes:      Return the hex value of the string.
+ ******************************************************************************/
+
+c2x: proc(str) returns(char(100) varying);
+
+dcl str      char(*);
+dcl hex      char(100) varying init('');
+dcl i        fixed bin(15);
+dcl ch       char(1);
+dcl tmp      fixed bin(31);
+dcl part     char(30) varying;
+dcl substr   builtin;
+dcl d2x      entry(fixed bin(31)) returns(char(100) varying);
+dcl c2d      entry(char(1)) returns(fixed bin(7));
+
+do i = 1 to length(str);
+   ch = substr(str, i, 1);
+   tmp = c2d(ch);
+   part = d2x(tmp);
+   hex = hex || part;
+   end;
+
+return(hex);
+
+end c2x;
+
+
+/******************************************************************************
+ * Routine:    changestr
+ * Notes:      Chang a string so the the needle is deleted and the newneedle replaces it.
+ ******************************************************************************/
+
+changestr: proc(needle, haystack, newneedle) returns(char(200) varying);
+
+dcl needle   char(*);
+dcl haystack char(*);
+dcl newneedle char(*);
+dcl rethaystack char(200) varying;
+dcl ctr         fixed bin(15) init(1);
+dcl needlelen   fixed bin(15);
+dcl substr   builtin;
+dcl length   builtin;
+
+rethaystack = '';
+needlelen = length(needle);
+do while (1);
+   if substr(haystack, ctr, needlelen) = needle then do;
+      rethaystack = rethaystack || newneedle;
+      ctr = ctr + needlelen;
+      end;
+   else do;
+      rethaystack = rethaystack || substr(haystack, ctr, 1);
+      ctr = ctr + 1;
+      end;
+   if ctr > length(haystack) then leave;
+   end;
+
+return(rethaystack);
+
+end changestr;
+
+
+/******************************************************************************
+ * Routine:    compare
+ * Notes:      Compare two strings and return the position of the first difference.
+ ******************************************************************************/
+
+compare: proc(str1, str2) returns(fixed bin(31);
+
+dcl str1     char(*);
+dcl str2     char(*);
+dcl pad      char(1);
+dcl i        fixed bin(31);
+dcl j        fixed bin(31);
+dcl substr   builtin;
+dcl length   builtin;
+
+pad = ' ';
+if length(str1) > length(str2) then i = length(str1);
+else i = length(str2);
+do j = 1 to i;
+   if j > length(str1) then do;
+      if pad != substr(str2, j, 1) then return(j);
+      end;
+   else if j > length(str2) then do;
+      if pad != substr(str1, j, 1) then return(j);
+      end;
+   else do;
+      if substr(str1, j, 1) != substr(str2, j, 1) then return(j);
+      end;
+   end;
+return(0);
+
+end compare;
+
+
+/******************************************************************************
+ * Routine:    countstr
+ * Notes:      Return the number of time a needle appears in the haystack.
+ ******************************************************************************/
+
+countstr: proc(needle, haystack) returns(fixed bin(31));
+
+dcl needle   char(*) varying;
+dcl haystack char(*) varying;
+dcl numinst  fixed bin(31) init(0);
+dcl ipos     fixed bin(15) init(1);
+dcl substr   builtin;
+dcl sysprint print;
+dcl pos      entry(char(30) varying, char(200) varying, fixed bin(31))
+              returns(fixed bin(31));
+
+do until (ipos > length(haystack) - length(needle) + 1);
+   ipos = pos(needle, haystack, ipos);
+   if ipos > 0 then do;
+      numinst = numinst + 1;
+      ipos = ipos + length(needle);
+      end;
+   else leave;
+   end;
+
+return(numinst);
+
+end countstr;
+
+
+/******************************************************************************
+ * Routine:    d2c
+ * Notes:      Return the character after converting it from fixed bin.
+ ******************************************************************************/
+
+d2c: proc(args) returns(char(1));
+
+dcl args     fixed bin(7);
+dcl ch       char(1) based(p);
+dcl p        ptr;
+
+p = addr(args);
+
+if args < 0 then return(' ');
+return(p->ch);
+
+end d2c;
+/******************************************************************************
+ * Routine:    d2x
+ * Notes:      Return the hexvalus of all characters in a string.
+ ******************************************************************************/
+
+d2x: proc(n) returns(char(100) varying;
+
+dcl n        fixed bin(31);
+dcl hexnum   char(100) varying init('');
+dcl i        fixed bin(15) init(1);
+dcl j        fixed bin(15);
+dcl temp     fixed bin(31);
+dcl ansstr   char(100) varying init('');
+dcl ctemp    char(1);
+dcl substr   builtin;
+dcl mod      builtin;
+dcl d2c      entry(fixed bin(7)) returns(char(1));
+
+do while (n != 0);
+   temp = mod(n, 16);
+   if (temp < 10) then do;
+      ctemp = d2c(temp + 48);
+      hexnum = hexnum || ctemp;
+      end;
+   else do;
+      ctemp = d2c(temp + 55);
+      hexnum = hexnum || ctemp;
+      end;
+   n = n / 16;
+   i = i + 1;
+   end;
+do j = i - 1 to 1 by -1;
+   ansstr = ansstr || substr(hexnum, j, 1);
+   end;
+
+return(ansstr);
+
+end d2x;
+/******************************************************************************
+ * Routine:    delstring
+ * Notes:      Delete a portion of the main string and return it.
+ ******************************************************************************/
+
+delstring: proc(str, n, dellen) returns(char(200) varying);
+
+dcl str      char(*);
+dcl n        fixed bin(31);
+dcl dellen   fixed bin(31);
+dcl retstr   char(200) varying init('');
+dcl substr   builtin;
+dcl length   builtin;
+
+if n > length(str) then return(str);
+if n < 1 then return(str);
+if n + dellen > length(str) then return(substr(str, 1, n - 1));
+if n = 1 then do;
+   retstr = substr(str, n + dellen);
+   end;
+else if n = length(str) then do;
+   retstr = substr(str, 1, n - 1);
+   end;
+else do;
+   retstr = substr(str, 1, n) || substr(str, n + dellen + 1);
+   end;
+
+return(retstr);
+
+end delstring;
+
+
+/******************************************************************************
+ * Routine:    getstrz
+ * Notes:      Return a zero-terminate string without the terminator
+ ******************************************************************************/
+
+getstrz: proc(stringz) returns(char(200) varying);
+
+dcl stringz  char(*);
+
+return(before(stringz, '00'x));
+
+end getstrz;
+
+
+/******************************************************************************
+ * Routine:    insert
+ * Notes:      Insert a string in the main string.
+ ******************************************************************************/
+
+insert: proc(new, target, n) returns(char(200) varying;
+
+dcl new      char(*);
+dcl target   char(*);
+dcl n        fixed bin(31);
+dcl retstr   char(200) varying init('');
+dcl substr   builtin;
+dcl length   builtin;
+
+if n = 0 then do;
+   retstr = new;
+   retstr = retstr || target;
+   end;
+else if n >= length(target) then do;
+   retstr = target;
+   do while (length(retstr) < n - 1);
+      retstr = retstr || ' ';
+      end;
+   retstr = retstr || new;
+   end;
+else do;
+   retstr = substr(target, 1, n);
+   retstr = retstr || new;
+   retstr = retstr || substr(target, n + 1);
+   end;
+return(retstr);
+
+end insert;
+
+
+/******************************************************************************
+ * Routine:    lastpos
+ * Notes:      Return the last position of the nedle string in the hatstack string.
+ ******************************************************************************/
+
+lastpos: proc(needle, haystack, start) returns(fixed bin(31));
+
+dcl needle   char(*) varying;
+dcl haystack char(*) varying;
+dcl start    fixed bin(31);
+dcl position fixed bin(31);
+dcl substr   builtin;
+dcl sysprint print;
+
+if haystack = '' then return(0);
+if length(needle) > length(haystack) then return(0);
+if start > length(haystack) - length(needle) + 1 then return(0);
+do position = length(haystack) - length(needle) + 1 to 1 by -1;
+   if substr(haystack, position, length(needle)) = needle then return(position);
+   end;
+return(0);
+
+end lastpos;
+
+
+/******************************************************************************
+ * Routine:    pos
+ * Notes:      Return the position of the needle string in the haystack string.
+ ******************************************************************************/
+
+pos: proc(needle, haystack, start) returns(fixed bin(31));
+
+dcl needle   char(*);
+dcl haystack char(*);
+dcl start    fixed bin(31);
+dcl position fixed bin(31);
+dcl substr   builtin;
+
+if haystack = '' then return(0);
+if length(needle) > length(haystack) then return(0);
+if start > length(haystack) - length(needle) + 1 then return(0);
+do position = start to length(haystack) - length(needle) + 1;
+   if substr(haystack, position, length(needle)) = needle then return(position);
+   end;
+return(0);
+
+end pos;
+
+
+/******************************************************************************
+ * Routine:    word
+ * Notes:      Return the nth word of a string.
+ ******************************************************************************/
+
+word: proc(str, n) returns(char(50) varying);
+
+dcl str     char(*) varying;           /* string to be searched               */
+dcl n       fixed bin(31);             /* word number to be returned          */
+dcl len     fixed bin(31);
+dcl i       fixed bin(31) init(1);
+dcl wordnum fixed bin(31) init(0);
+dcl retword char(50) varying init('');
+dcl substr   builtin;
+dcl sysprint print;
+
+len = length(str);
+if len = 0 then return(0);
+do while (i <= len);
+   call getblanks();
+   if i > len then do;
+      return(retword);
+      end;
+   call getword();
+   if wordnum = n then do;
+      return(retword);
+      end;
+   end;
+if wordnum != n then retword = '';
+
+return(retword);
+
+/******************************************************************************/
+
+   getblanks: proc();
+
+   do while (i <= len & substr(str, i, 1) = ' ');
+      i = i + 1;
+      end;
+   return;
+
+   end getblanks;
+
+/******************************************************************************/
+
+   getword: proc();
+
+   retword = '';
+   wordnum = wordnum + 1;
+   do while (i <= len & substr(str, i, 1) != ' ');
+      retword = retword || substr(str, i, 1);
+      i = i + 1;
+      end;
+   return;
+
+   end getword;
+
+end word;
+
+
+/******************************************************************************
+ * Routine:    wordindex
+ * Notes:      Return the nth word of a string.
+ ******************************************************************************/
+
+wordindex: proc(str, n) returns(fixed bin(31));
+
+dcl str     char(*) varying;           /* string to be searched               */
+dcl n       fixed bin(31);             /* word number index to be returned    */
+dcl len     fixed bin(31);
+dcl i       fixed bin(31) init(1);
+dcl wordnum fixed bin(31) init(0);
+dcl retword char(50) varying init(0);
+dcl retindex fixed bin(31) init(0);
+dcl substr   builtin;
+dcl length   builtin;
+dcl sysprint print;
+
+len = length(str);
+if len = 0 then return(0);
+do while (i <= len);
+   call getblanks();
+   if i > len then do;
+      return(retindex);
+      end;
+   call getword();
+   if wordnum = n then do;
+      retindex = i - length(retword);
+      return(retindex);
+      end;
+   end;
+if wordnum != n then retindex = 0;
+else retindex = i - length(retword);
+return(retindex);
+
+return(retword);
+
+/******************************************************************************/
+
+   getblanks: proc();
+
+   do while (i <= len & substr(str, i, 1) = ' ');
+      i = i + 1;
+      end;
+   return;
+
+   end getblanks;
+
+/******************************************************************************/
+
+getword: proc();
+
+   retword = '';
+   wordnum = wordnum + 1;
+   do while (i <= len & substr(str, i, 1) != ' ');
+      retword = retword || substr(str, i, 1);
+      i = i + 1;
+      end;
+   return;
+
+   end getword;
+
+end wordindex;
+
+
+/******************************************************************************
+ * Routine:    wordlength
+ * Notes:      Get the length of the nth word in a string.
+ ******************************************************************************/
+
+wordlength: proc(str, n) returns(fixed bin(31));
+
+dcl str     char(*) varying;           /* string to be searched               */
+dcl n       fixed bin(31);             /* word number to be returned          */
+dcl len     fixed bin(31);
+dcl i       fixed bin(31) init(1);
+dcl wordnum fixed bin(31) init(0);
+dcl retword char(50) varying init('');
+dcl substr   builtin;
+dcl sysprint print;
+
+len = length(str);
+if len = 0 then return(0);
+do while (i <= len);
+   call getblanks();
+   if i > len then do;
+      return(length(retword));
+      end;
+   call getword();
+   if wordnum = n then do;
+      return(length(retword));
+      end;
+   end;
+if wordnum != n then retword = '';
+
+return(length(retword));
+
+/******************************************************************************/
+
+   getblanks: proc();
+
+   do while (i <= len & substr(str, i, 1) = ' ');
+      i = i + 1;
+      end;
+   return;
+
+   end getblanks;
+
+/******************************************************************************/
+
+   getword: proc();
+
+   retword = '';
+   wordnum = wordnum + 1;
+   do while (i <= len & substr(str, i, 1) != ' ');
+      retword = retword || substr(str, i, 1);
+      i = i + 1;
+      end;
+   return;
+
+   end getword;
+
+end wordlength;
+
+
+/******************************************************************************
+ * Routine:    words
+ * Notes:      Count the number of words in a string.
+ ******************************************************************************/
+
+words: proc(str) returns(fixed bin(31));
+
+dcl str     char(*) varying;           /* string to be searched               */
+dcl len     fixed bin(31);
+dcl i       fixed bin(31) init(1);
+dcl wordnum fixed bin(31) init(0);
+dcl retword char(50) varying init('');
+dcl substr   builtin;
+dcl sysprint print;
+
+len = length(str);
+if len = 0 then return(0);
+do while (i <= len);
+   call getblanks();
+   call getword();
+   end;
+
+return(wordnum);
+
+/******************************************************************************/
+
+   getblanks: proc();
+
+   do while (i <= len & substr(str, i, 1) = ' ');
+      i = i + 1;
+      end;
+   return;
+
+   end getblanks;
+
+/******************************************************************************/
+
+   getword: proc();
+
+   retword = '';
+   wordnum = wordnum + 1;
+   do while (i <= len & substr(str, i, 1) != ' ');
+      retword = retword || substr(str, i, 1);
+      i = i + 1;
+      end;
+   return;
+
+   end getword;
+
+end words;
+
+
+/******************************************************************************
+ * Routine:    strzlen
+ * Notes:      Return the length od the staing not including the terminating zero.
+ ******************************************************************************/
+
+strzlen: proc(str) returns(fixed bin(31));
+
+dcl str     char(*);                   /* string to be searched               */
+dcl len     fixed bin(31) init(0);
+dcl substr   builtin;
+dcl d2c      entry(fixed bin(7)) returns(char(1));
+
+do while (substr(str, len + 1, 1) != d2c(0));
+   len = len + 1;
+   end;
+
+return(len);
+
+end strzlen;
+
+
+/******************************************************************************
+ * Routine:    toupper
+ * Notes:      Upper case the input string and return it.
+ ******************************************************************************/
+
+toupper: proc(str) returns(char(250) var);
+
+dcl str char(*);
+
+return(translate(str, 'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'));
+
+end toupper;
+
+
+/******************************************************************************
+ * Routine:    tolower
+ * Notes:      Lower case the input string and return it.
+ ******************************************************************************/
+
+tolower: proc(str) returns(char(250) var);
+
+dcl str char(*);
+
+return(translate(str, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'));
+
+end tolower;
+
+
+
+end strfuncs;
+

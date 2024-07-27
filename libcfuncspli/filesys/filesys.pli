@@ -1,0 +1,338 @@
+/******************************************************************************
+ * File:       filesyspli
+ * Author:     W. David Ashley
+ * Date:       2024-07-16
+ * Copyright:  Copyright © 2024 W. David Ashley
+ *             This source file is goverened by the The Open Software License
+ *             3.0 which is included with the source code distribution.
+ * Notes:      PL/I routines to manipulate the file system.
+ * Updates:    2024-07-16 WDA Initialrelease.
+ *
+ ******************************************************************************/
+
+filesys: package exports(*);
+
+/*----------------------------------------------------------------------------*/
+/* Global variables                                                           */
+/*----------------------------------------------------------------------------*/
+
+dcl c_chdir entry(pointer) returns(fixed bin(31)) ext('chdir')
+      options(assembler linkage(system));
+dcl c_getuid entry() returns(fixed bin(31)) ext('getuid')
+      options(assembler linkage(system));
+dcl c_rmdir entry(pointer) returns(fixed bin(31)) ext('rmdir')
+      options(assembler linkage(system));
+dcl c_getgid entry() returns(fixed bin(31)) ext('getgid')
+      options(assembler linkage(system));
+dcl c_geteuid entry() returns(fixed bin(31)) ext('geteuid')
+      options(assembler linkage(system));
+dcl c_getegid entry() returns(fixed bin(31)) ext('getegid')
+      options(assembler linkage(system));
+dcl c_symlink entry(pointer, pointer) returns(fixed bin(31)) ext('symlink')
+      options(assembler linkage(system));
+dcl c_getcwd entry(pointer, fixed bin(31)) returns(fixed bin(31)) ext('getcwd')
+      options(assembler linkage(system));
+dcl c_mkdir entry(pointer, fixed bin(31)) returns(fixed bin(31)) ext('mkdir')
+      options(assembler linkage(system));
+dcl c_chmod entry(pointer, unsigned fixed bin(32)) returns(fixed bin(31)) ext('chmod')
+      options(assembler linkage(system));
+dcl c_stat entry(pointer, pointer) returns(fixed bin(31)) ext('stat')
+      options(assembler linkage(system));
+dcl c_sysinfo entry(pointer) returns(fixed bin(31)) ext('sysinfo')
+      options(assembler linkage(system));
+dcl c_link entry(pointer, pointer) returns(fixed bin(31)) ext('link')
+      options(assembler linkage(system));
+dcl c_unlink entry(pointer) returns(fixed bin(31)) ext('unlink')
+      options(assembler linkage(system));
+dcl c_opendir entry(pointer) returns(pointer) ext('opendir')
+      options(assembler linkage(system));
+dcl c_readdir64 entry(pointer) returns(pointer) ext('readdir64')
+      options(assembler linkage(system));
+dcl c_closedir entry(pointer) returns(fixed bin(31)) ext('closedir')
+      options(assembler linkage(system));
+dcl addr builtin;
+dcl length builtin;
+dcl index  builtin;
+dcl before builtin;
+dcl sysprint file print env(interactive);
+
+/*----------------------------------------------------------------------------*/
+/* Function:   chdir                                                          */
+/* Notes:      Change the current directory.                                  */
+/*----------------------------------------------------------------------------*/
+
+chdir: proc(dirname) returns(fixed bin(31));
+
+dcl dirname  char(*);
+dcl dirnamez char(length(dirname) + 1);
+
+dirnamez = dirname || '00'x;
+return(c_chdir(addr(dirnamez)));
+
+end chdir;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   getuid                                                         */
+/* Notes:      Get the userid.                                                */
+/*----------------------------------------------------------------------------*/
+
+getuid: proc() returns(fixed bin(31));
+
+
+return(c_getuid());
+
+end getuid;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   rmdir                                                          */
+/* Notes:      Destroy a subdirectory.                                        */
+/*----------------------------------------------------------------------------*/
+
+rmdir: proc(dirname) returns(fixed bin(31));
+
+dcl dirname  char(*);
+dcl dirnamez char(length(dirname) + 1);
+
+dirnamez = dirname || '00'x;
+return(c_rmdir(addr(dirnamez)));
+
+end rmdir;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   getgid                                                         */
+/* Notes:      Get the groupid.                                               */
+/*----------------------------------------------------------------------------*/
+
+getgid: proc() returns(fixed bin(31));
+
+return(c_getgid());
+
+end getgid;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   geteuid                                                        */
+/* Notes:      Get the effective userid.                                       */
+/*----------------------------------------------------------------------------*/
+
+geteuid: proc() returns(fixed bin(31));
+
+return(c_geteuid());
+
+end geteuid;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   getegid                                                        */
+/* Notes:      Get the effective groupid.                                      */
+/*----------------------------------------------------------------------------*/
+
+getegid: proc() returns(fixed bin(31));
+
+return(c_getegid());
+
+end getegid;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   symlink                                                        */
+/* Notes:      Creates a synbolic link for a file or directory.                */
+/*----------------------------------------------------------------------------*/
+
+symlink: proc(oldname, newname) returns(fixed bin(31));
+
+dcl oldname  char(*);
+dcl newname  char(*);
+dcl oldnamez char(length(oldname) + 1);
+dcl newnamez char(length(newname) + 1);
+
+oldnamez = oldname || '00'x;
+newnamez = newname || '00'x;
+return(c_symlink(addr(oldnamez), addr(newnamez)));
+
+end symlink;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   getcwd                                                         */
+/* Notes:      Get the current working directory.                             */
+/*----------------------------------------------------------------------------*/
+
+getcwd: proc() returns(char(4096) var);
+
+dcl cwd      char(4096);
+dcl retptr   ptr;
+dcl retc     fixed bin(31) based(addr(retptr));
+dcl retstr   char(4096) var init('');
+
+retc = c_getcwd(addr(cwd), 4096);
+if retptr = SYSNULL then return(retstr);
+retstr = before(cwd, '00'x);
+return(retstr);
+
+end getcwd;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   mkdir                                                          */
+/* Notes:      Create a new subdirectory.                                     */
+/*----------------------------------------------------------------------------*/
+
+mkdir: proc(dirname, mode) returns(fixed bin(31));
+
+dcl dirname  char(*);
+dcl dirnamez char(length(dirname) + 1);
+dcl mode     unsigned fixed bin(32);
+
+dirnamez = dirname || '00'x;
+return(c_mkdir(addr(dirnamez), mode));
+
+end mkdir;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   chmod                                                          */
+/* Notes:      Change the mode flag of a file.                                 */
+/*----------------------------------------------------------------------------*/
+
+chmod: proc(fname, newmode) returns(fixed bin(31));
+
+dcl fname    char(*);
+dcl fnamez   char(length(fname) + 1);
+dcl newmode  unsigned fixed bin(32);
+
+fnamez = fname || '00'x;
+return(c_chmod(addr(fnamez), newmode));
+
+end chmod;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   stat                                                           */
+/* Notes:      Get file statistics.                                            */
+/*----------------------------------------------------------------------------*/
+
+stat: proc(fname, statptr) returns(fixed bin(31));
+
+dcl fname    char(*);
+dcl fnamez   char(length(fname) + 1);
+dcl statptr  ptr;                        /* ptr to the user's stat structure */
+
+fnamez = fname || '00'x;
+return(c_stat(addr(fnamez), statptr));
+
+end stat;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   sysinfo                                                        */
+/* Notes:      Get system information.                                        */
+/*----------------------------------------------------------------------------*/
+
+sysinfo: proc(sysinfoptr) returns(fixed bin(31));
+
+dcl sysinfoptr ptr;                        /* ptr to the user's sysinfo structure */
+
+return(c_sysinfo(sysinfoptr));
+
+end sysinfo;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   link                                                           */
+/* Notes:      Converts a new hard link for a file.                            */
+/*----------------------------------------------------------------------------*/
+
+link: proc(oldname, newname) returns(fixed bin(31));
+
+dcl oldname  char(*);
+dcl newname  char(*);
+
+dcl oldnamez char(length(oldname) + 1);
+dcl newnamez char(length(newname) + 1);
+
+oldnamez = oldname || '00'x;
+newnamez = newname || '00'x;
+return(c_link(addr(oldnamez), addr(newnamez)));
+
+end link;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   unlink                                                         */
+/* Notes:      Unlinks a hard/symbolic link for a file.                        */
+/*----------------------------------------------------------------------------*/
+
+unlink: proc(linkname) returns(fixed bin(31));
+
+dcl linkname  char(*);
+dcl linknamez char(length(linkname) + 1);
+
+linknamez = linkname || '00'x;
+return(c_unlink(addr(linknamez)));
+
+end unlink;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   opendir                                                        */
+/* Notes:      Open a directory file for reading.                              */
+/*----------------------------------------------------------------------------*/
+
+opendir: proc(dir) returns(pointer);
+
+dcl dir      char(*);
+dcl dirz     char(length(dir) + 1);
+dcl fd       pointer;
+
+dirz = dir || '00'x;
+fd = c_opendir(addr(dirz));
+return(fd);
+
+end opendir;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   getdirentry                                                    */
+/* Notes:      Get a directory entry file name and return it.                  */
+/*----------------------------------------------------------------------------*/
+
+getdirentry: proc(fd) returns(char(256) var);
+
+dcl fd pointer;
+dcl 01 dirent64 based,
+/*    05 d_ino  unsigned fixed bin(64),          /* inode number */
+/*    05 d_off   unsigned fixed bin(64),          /* offset to next structure */
+    05 d_ino  char(8),                        /* inode number */
+    05 d_off   char(8),                        /* offset to next structure */
+    05 d_reclen unsigned fixed bin(16),        /* length of this record */
+    05 d_type unsigned fixed bin(8),           /* File type */
+    05 d_name char(256);                      /* Filename (null-terminated) */
+dcl direntptr pointer;
+dcl dirent    char(256) var init('');
+dcl retc fixed bin(31);
+dcl substr    builtin;
+dcl before    builtin;
+
+do while(1);
+    loop:
+    direntptr = c_readdir64(fd);
+    /* if no more entries then close fdirectory and return a zero-length string */
+    if direntptr = SYSNULL then leave;
+    /* the following eliminates '.', '..', and '.*' files from the list */
+    /* if substr(direntptr->dirent64.d_name, 1, 1) = '.' then iterate; */
+    if substr(direntptr->dirent64.d_name, 1, 1) = '.' then goto loop;
+    /* return the filename */
+    dirent = before(direntptr->dirent64.d_name, '00'x);
+    return(dirent);
+    end;
+retc = c_closedir(fd);
+return('');
+
+end getdirentry;
+
+end filesys;
+

@@ -1,0 +1,417 @@
+/*----------------------------------------------------------------------------*/
+/* File:       datetime.pli (package)                                         */
+/* Author:     W. David Ashley                                                */
+/* Date:       2024-06-01                                                     */
+/* Copyright:  Copyright © 2024 W. David Ashley                               */
+/*             This source file is goverened by the The Open Software License  */
+/*             3.0 which is included with the source code distribution.       */
+/* Notes:      This PL/I source file is a package containing functions that    */
+/*             manipulate and display dates and times.                        */
+/* Updates:    2024-06-01 WDA. Initial release.                               */
+/*----------------------------------------------------------------------------*/
+
+
+datetime: package exports(*);
+
+
+%include 'unistd_32.inc';
+
+
+/*----------------------------------------------------------------------------*/
+/* Global variables                                                           */
+/*----------------------------------------------------------------------------*/
+
+dcl months(12) static char(9) varying
+    init("January", "Febuary", "March", "April", "May", "June",
+         "July", "August", "September", "October", "November",
+         "December");
+dcl calendar(12) static fixed bin(15)
+    init(0, 1, -1, 0, 0, 1, 1, 2, 3, 3, 4, 4);         /* base 30             */
+dcl weekdays(0:6) static char(9) varying
+    init('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday',
+         'Saturday');
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   date2base                                                      */
+/* Notes:      Converts a date (in number form) and returns a basedate.       */
+/*----------------------------------------------------------------------------*/
+
+date2base: proc(year, month, day) returns(fixed bin(31));
+
+dcl year  fixed bin(31);                  /* base date year                    */
+dcl month fixed bin(31);                  /* base date month                   */
+dcl day   fixed bin(31);                  /* base date day                     */
+dcl mod   builtin;
+
+/* convert to base date */
+return (((year-1) * 365)          /* # days of normal years        */
+          + ((year-1) / 4)        /* # of possible leap days       */
+          - (((year-1) / 100)     /* # of non-century leap days    */
+          - ((year-1) / 400)
+          )
+                                  /* # of days in months past      */
+                     /* add one day if a leap year and past Feb 29 */
+        + (calendar(month) + ((month-1) * 30))
+        + ((
+          ((mod(year, 4) = 0) & (mod(year, 100) != 0)) |
+           (mod(year, 400) = 0))
+            & (month > 2)
+           )
+        + day                     /* # days in current month       */
+        - 1);                     /* do not include today          */
+end date2base;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   base2date                                                      */
+/* Notes:      Converts a base date to a standard PL/I date string.           */
+/*----------------------------------------------------------------------------*/
+
+base2date: proc(base) returns(char(8));
+
+dcl base    fixed bin(31);                /* base date                         */
+dcl year    fixed bin(31);                /* year                              */
+dcl month   fixed bin(31);                /* month                             */
+dcl day     fixed bin(31);                /* day                               */
+dcl strdate char(8);
+dcl i       fixed bin(31);
+
+/* extract year from the base date */
+year = (((base + 1) * 400) / 146097) + 1;
+/* extract month from the base date */
+do i = 1 to 12;
+    if (base - date2base(year, i, 1) < 0) then leave;
+    end;
+month = i - 1;
+/* extract day from the base date */
+day = base - date2base(year, month, 1) + 1;
+
+/* convert to a string */
+put string(strdate) edit(year,month,day) (p'9999', p'99', p'99');
+
+return(strdate);
+
+end base2date;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   isodate.pli                                                    */
+/* Notes:      Converts the current date/time to ISO date format.             */
+/*----------------------------------------------------------------------------*/
+
+isodate: proc() returns(char(23));
+
+dcl dt       char(17);
+dcl isodt    char(23);
+dcl substr   builtin;
+dcl datetime builtin;
+
+dt = datetime();
+/* this is a valid short form of the full iso date format */
+isodt = substr(dt, 1, 4) || '-'  || substr(dt, 5, 2) ||
+    '-' || substr(dt, 7, 2) || 'T' ||
+    substr(dt, 9, 2) || ':' || substr(dt, 11, 2) || ':' ||
+    substr(dt, 13, 2) || '.' || substr(dt, 15);
+
+return(isodt);
+
+end isodate;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   date_e.pli                                                     */
+/* Notes:      Converts the current date to European format. The format is    */
+/*             dd/mm/yy.                                                      */
+/*----------------------------------------------------------------------------*/
+
+date_e: proc() returns(char(8));
+
+dcl dt       char(6);
+dcl eur_date char(8);
+dcl substr   builtin;
+dcl date     builtin;
+
+dt = date();
+eur_date = substr(dt, 5, 2) || '/'  || substr(dt, 3, 2) ||
+    '/' || substr(dt, 1, 2);
+
+return(eur_date);
+
+end date_e;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   date_m.pli                                                     */
+/* Notes:      Converts the current month to its Englist name.                */
+/*----------------------------------------------------------------------------*/
+
+date_m: proc() returns(char(9) varying);
+
+dcl dt       char(6);
+dcl i        fixed bin(15);
+dcl date     builtin;
+
+dt = date();
+i = substr(dt, 3, 2);
+
+return(months(i));
+
+end date_m;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   date_n.pli                                                     */
+/* Notes:      Converts the current month to its normal English format.       */
+/*----------------------------------------------------------------------------*/
+
+date_n: proc() returns(char(10);
+
+dcl dt       char(17);
+dcl ret_dt   char(11);
+dcl datetime builtin;
+
+dt = datetime();
+ret_dt = substr(dt, 7, 2) || ' ' || substr(dt, 5, 2) || ' ' ||
+    substr(dt, 1, 4);
+
+return(substr(ret_dt, 1, 10));
+
+end date_n;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   date_u.pli                                                     */
+/* Notes:      Converts the current date to its standard USA format.          */
+/*----------------------------------------------------------------------------*/
+
+date_u: proc() returns(char(8);
+
+dcl dt       char(6);
+dcl ret_dt   char(11);
+dcl date     builtin;
+
+dt = date();
+ret_dt = substr(dt, 3, 2) || '/' || substr(dt, 5, 2) || '/' ||
+    substr(dt, 1, 2);
+
+return(ret_dt);
+
+end date_u;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   date_w.pli                                                     */
+/* Notes:      Return the current weekday,                                    */
+/*----------------------------------------------------------------------------*/
+
+date_w: proc() returns(char(9) varying;
+
+dcl dt       char(17);
+dcl base_dt  fixed bin(31);
+dcl datetime builtin;
+dcl mod      builtin;
+
+dt = datetime();
+base_dt = date2base(substr(dt, 1, 4), substr(dt, 5, 2), substr(dt, 7, 2));
+
+return(weekdays(mod(base_dt + 1, 7)));
+
+end date_w;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   date_o.pli                                                     */
+/* Notes:      Return the current date in ordered format.                     */
+/*----------------------------------------------------------------------------*/
+
+date_o: proc() returns(char(8);
+
+dcl dt       char(6);
+dcl date     builtin;
+
+dt = date();
+
+return(substr(dt, 1, 2) || '/' || substr(dt, 3, 2) || '/' || substr(dt, 5, 2));
+
+end date_o;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   date_b.pli                                                     */
+/* Notes:      Return the current base date.                                  */
+/*----------------------------------------------------------------------------*/
+
+date_b: proc() returns(fixed bin(31));
+
+dcl dt       char(17);
+dcl basedt   fixed bin(31);
+dcl datetime builtin;
+
+dt = datetime();
+basedt = date2base(substr(dt, 1, 4), substr(dt, 5, 2), substr(dt, 7, 2));
+return(basedt);
+
+end date_b;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   date_s.pli                                                     */
+/* Notes:      Return the standard base date.                                 */
+/*----------------------------------------------------------------------------*/
+
+date_s: proc() returns(char(8));
+
+dcl dt       char(17);
+dcl datetime builtin;
+
+dt = datetime();
+return(substr(dt, 1, 8));
+
+end date_s;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   date_t.pli                                                     */
+/* Notes:      Return the number of seconds since the Epoch.                  */
+/*----------------------------------------------------------------------------*/
+
+
+date_t: proc() returns(fixed bin(31));
+
+dcl ticks    fixed bin(31);
+dcl syscall  entry returns(fixed bin(31)) ext('_pli_Syscall');
+
+ticks = syscall(13, NULL);
+return(ticks);
+
+end date_t;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   time_l.pli                                                     */
+/* Notes:      Return the time in standard format.                            */
+/*----------------------------------------------------------------------------*/
+
+time_l: proc() returns(char(12));
+
+dcl timestr  char(9);
+dcl ftimestr char(12);
+dcl time     builtin;
+
+timestr = time();
+ftimestr = substr(timestr, 1, 2) || ':' || substr(timestr, 3, 2) || ':' ||
+    substr(timestr, 5, 2) || '.' || substr(timestr, 7, 3);
+return(ftimestr);
+
+end time_l;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   time_c.pli                                                     */
+/* Notes:      Return the time in civil format.                               */
+/*----------------------------------------------------------------------------*/
+
+time_c: proc() returns(char(8));
+
+dcl timestr  char(9);
+dcl ftimestr char(8);
+dcl ampm     char(2) init('am');
+dcl time     builtin;
+
+timestr = time();
+if substr(timestr, 1, 2) = '00' then do;
+    substr(timestr, 1, 2) = '12';
+    end;
+else if substr(timestr, 1, 2) > '12' then do;
+    put string(substr(timestr, 1, 2)) edit(substr(timestr, 1, 2) - 12) (p'99');
+    ampm = 'pm';
+    end;
+ftimestr = substr(timestr, 1, 2) || ':' || substr(timestr, 3, 2) || ' ' || ampm;
+
+return(ftimestr);
+
+end time_c;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   time_h.pli                                                     */
+/* Notes:      Return the number of hours since midnight.                     */
+/*----------------------------------------------------------------------------*/
+
+time_h: proc() returns(char(2));
+
+dcl timestr  char(9);
+dcl time     builtin;
+
+timestr = time();
+
+return(substr(timestr, 1, 2));
+
+end time_h;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   time_m.pli                                                     */
+/* Notes:      Return the number of hours since midnight.                     */
+/*----------------------------------------------------------------------------*/
+
+time_m: proc() returns(char(4) varying);
+
+dcl timestr  char(9);
+dcl minutes  fixed bin(15);
+dcl retstr   char(4) varying;
+dcl time     builtin;
+
+timestr = time();
+minutes = (substr(timestr, 1, 2) * 60) + substr(timestr, 3, 2);
+put string(retstr) edit(minutes) (p'9999');
+retstr = ltrim(retstr, '0');
+
+return(retstr);
+
+end time_m;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   time_s.pli                                                     */
+/* Notes:      Return the number of seconds since midnight.                     */
+/*----------------------------------------------------------------------------*/
+
+time_s: proc() returns(char(5) varying);
+
+dcl timestr  char(9);
+dcl seconds  fixed bin(31);
+dcl retstr   char(5) varying;
+dcl time     builtin;
+
+timestr = time();
+seconds = (substr(timestr, 1, 2) * 60 * 60) + (substr(timestr, 3, 2) * 60) +
+    substr(timestr, 5, 2);
+put string(retstr) edit(seconds) (p'99999');
+retstr = ltrim(retstr, '0');
+
+return(retstr);
+
+end time_s;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   time_t.pli                                                     */
+/* Notes:      Return the number of seconds since the Epoch.                  */
+/*----------------------------------------------------------------------------*/
+
+time_t: proc() returns(fixed bin(31));
+
+
+dcl ticks    fixed bin(31);
+dcl syscall  entry returns(fixed bin(31)) ext('_pli_Syscall');
+
+/* This may need to be fixed for PL/I 64bit !!!!!! */
+ticks = syscall(__NR_time, NULL);
+return(ticks);
+
+end time_t;
+
+end datetime;
+

@@ -1,0 +1,96 @@
+osentry: proc() options(main);
+
+dcl sysprint file output;
+dcl date builtin;
+dcl time builtin;
+dcl ltrim builtin;
+dcl date2base entry(fixed bin(31), fixed bin(31), fixed bin(31)) returns(fixed bin(31));
+dcl base2date entry(fixed bin(31)) returns(char(8));
+dcl isodate entry() returns(char(23));
+dcl date_e entry() returns(char(8));
+dcl date_m entry() returns(char(9) varying);
+dcl date_n entry() returns(char(10));
+dcl date_u entry() returns(char(8));
+dcl date_w entry() returns(char(9) varying);
+dcl date_o entry() returns(char(8));
+dcl date_b entry() returns(fixed bin(31));
+dcl date_s entry() returns(char(8));
+dcl date_t entry() returns(fixed bin(31));
+dcl time_l entry() returns(char(12));
+dcl time_c entry() returns(char(8));
+dcl time_h entry() returns(char(2));
+dcl time_m entry() returns(char(4) varying);
+dcl time_s entry() returns(char(5) varying);
+dcl time_t entry() returns(fixed bin(31));
+
+dcl base_dt fixed bin(31) init(date_b());
+
+put skip edit('Starting tests.') (a);
+
+put skip edit('Current date is.') (a);
+put skip edit(date()) (a);
+
+put skip edit('Current base date.') (a);
+put skip edit(base_dt) (f(6));
+
+put skip edit('Current date from base date.') (a);
+put skip edit(base2date(base_dt)) (a(8));
+
+put skip edit('Current iso date.') (a);
+put skip edit(isodate()) (a(23));
+
+put skip edit('Current date in European format.') (a);
+put skip edit(date_e()) (a);
+
+put skip edit('Current month is.') (a);
+put skip edit(date_m()) (a);
+
+put skip edit('Current date in USA format.') (a);
+put skip edit(date_u()) (a);
+
+put skip edit('Current date in normal format.') (a);
+put skip edit(date_n()) (a);
+
+put skip edit('Current weekday is.') (a);
+put skip edit(date_w()) (a);
+
+put skip edit('Current ordered date is.') (a);
+put skip edit(date_o()) (a);
+
+put skip edit('Current standard date is.') (a);
+put skip edit(date_s()) (a);
+
+put skip edit('Current seconds since the Epoch is.') (a);
+put skip edit(date_t()) (p'ZZZZZZZZZZZZ9');
+
+put skip edit('Current time is.') (a);
+put skip edit(time()) (a);
+
+put skip edit('Current formatted time is.') (a);
+put skip edit(time_l()) (a);
+
+put skip edit('Current civil time is.') (a);
+put skip edit(time_c()) (a);
+
+put skip edit('Current number of hours since midnight.') (a);
+put skip edit(time_h()) (a);
+
+put skip edit('Current number of minutes since midnight.') (a);
+put skip edit(time_m()) (a);
+
+put skip edit('Current number of seconds since midnight.') (a);
+put skip edit(time_s()) (a);
+
+put skip edit('Current seconds since the Epoch is.') (a);
+put skip edit(time_t()) (p'ZZZZZZZZZZZZ9');
+
+return;
+
+end osentry;
+
+
+
+
+
+
+

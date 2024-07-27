@@ -1,0 +1,189 @@
+'\" t
+.\"     Title: plic
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 07/26/2024
+.\"    Manual: Iron Spring PL?I Compiler
+.\"    Source: Iron Spring PL?I Compiler
+.\"  Language: English
+.\"
+.TH "PLIC" "1" "07/26/2024" "Iron Spring PL?I Compiler" "Iron Spring PL?I Compiler"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+plic \- Iron Spring PL/I compiler
+.SH "SYNOPSIS"
+.sp
+.ft B
+.nf
+plic [\fIoptions\fR] <input files> [\-o <output file>]
+.fi
+.ft
+.SH "DESCRIPTION"
+.PP
+\fIOptions\fR
+may be entered in any order\&. The Linux shell requires that options containing () be enclosed in double quotes (")\&.
+.PP
+\fB<output options>\fR
+.RS 4
+\-S | \-C | \-L
+.br
+
+S = generate assembler (symbolic) output
+.br
+
+C = generate compiled (object) output
+.br
+
+L = generated linked (EXE or DLL) output (this option not currently implemented\&.}
+.br
+
+N = generate statement number table to provide information for run\-time error messages
+.br
+
+.RE
+.PP
+\fB<include options>\fR
+.RS 4
+\-i<directory>
+.br
+
+where <directory> is the absolute or relative path to a directory to be searched for %INCLUDE files\&. This option may be used more than once on the command line, and directories will be searched in the order listed\&.
+.RE
+.PP
+\fB<listing options>\fR
+.RS 4
+\-l[siaxgmov]
+.br
+
+one or more of [siaxgmov] may be entered, in any order as \-lsx
+.br
+
+\-ls = list source
+.br
+
+\-li = list insource
+.br
+
+\-la = list attributes
+.br
+
+\-lx = list cross\-reference
+.br
+
+\-lg = list aggregates
+.br
+
+\-lm = list generated code in a format similar to an assembly listing
+.br
+
+\-lo = list procedure map (statement offset table)
+.br
+
+\-lv = list additional warning messages
+.br
+
+Currently, the insource listing is not available\&.
+.RE
+.PP
+\fB<source margins>\fR
+.RS 4
+\-m(start[,end])
+.br
+
+This option defines the first and last positions of each input line that contain input for the compiler\&. If this option is omitted the source is assumed to be the entire line\&. This option is included for compatibility with mainframe compilers which would use, for example, \-m(2,72)\&.
+.RE
+.PP
+\fB<character substitutions>\fR
+.RS 4
+\-cn(<list>) and/or \-co(<list>)
+.br
+
+This option defines up to four characters each to be used as substitutions for the NOT(\(no) [\-cn()] and/or OR(|) [\-co()] operator IN ADDITION TO the defaults\&. The caret (^) is a metacharacter for the OS/2 command processor; if the caret is to be used, code two consecutive carets, for example \-cn(^^)\&.
+.RE
+.PP
+\fB<version info>\fR
+.RS 4
+\-V
+.br
+
+The compiler prints version and copyright information on stderr\&.
+.RE
+.PP
+\fB<error options>\fR
+.RS 4
+\-e<option>
+.br
+
+This option sets the errorlevel returned by the compiler for warning and error messages\&. Normally compiler returns 4 if only warnings were issued, and 8 for any errors\&.
+.br
+
+\-ew tells the compiler to return 0 if only warning messages were issued\&.
+.br
+
+\-es tells the compiler to return 0 if any errors or warnings were issued\&. This option is useful when the compiler is run from a script or makefile\&.
+.br
+
+\-ed tells the compiler to display messages on stderr as well as stdout\&.
+.RE
+.PP
+\fB<misc options>\fR
+.RS 4
+\-d<option> <option> is a character string, with or without enclosing quotes\&.
+.br
+
+\-dLIB tells the compiler it is compiling a standard run\-time library procedure\&.
+.br
+
+\-dELF causes the compiler to generate ELF object files\&.
+.br
+
+\-dOMF causes the compiler to generate OMF object files\&.
+.br
+
+The default is to generate the standard object format for the host OS; for OS/2 \-dOMF is the default, for Linux \-dELF is the default\&.
+.RE
+.PP
+\fB<optimization option>\fR
+.RS 4
+\-O enables optimizations
+.RE
+.PP
+\fB<input files>\fR and \fB<output files>\fR
+.RS 4
+are absolute or relative path names\&. Only one input and one one output file are currently allowed\&. If the output file is omitted the name is generated\&. For example, PLIC \-S abc\&.pli will create a file named abc\&.asm\&.
+.RE
+.SH "STANDARDS"
+.PP
+The Iron Spring PL/I compiler is based on the IBM document "PL/I for MVS and VM Compiler 1\&.1" with a few exceptions and additions\&.
+.SH "EXAMPLES"
+.PP
+The following are some examples invocations of plic\&.
+.br
+
+plic \-C "\-cn(!)" strfuncs\&.pli \-o strfuncs\&.o
+.br
+
+plic \-C \-lsax "\-cn(!)" funcs\&.pli \-o funcs\&.o
+.br
+
+plic \-C \-ls \-m(2,72) "\-cn(!)" strfuncs\&.pli \-o strfuncs\&.o
+.br
+

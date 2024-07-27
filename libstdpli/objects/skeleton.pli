@@ -1,0 +1,139 @@
+/******************************************************************************
+ * File:       skeleton.pli
+ * Author:     W. David Ashley
+ * Date:       2024-07-18
+ * Copyright:  Copyright © 2024 W. David Ashley
+ *             This source file is goverened by the The Open Software License
+ *             3.0 which is included with the source code distribution.
+ * Notes:      This flie is a skeleton quasi-object oriented class skeleton. It
+ *             has a LOT of restrictions as far as a true object class but also
+ *             has a number of good qualities. It can group together objects
+ *             that have a shared code base and can control allocating and
+ *             deleting those objects.
+ * Updates:    2024-07-18 WDA Initialrelease.
+ ******************************************************************************/
+
+ooclass: package exports(*);
+
+/******************************************************************************
+ * Notes: 1. Routines that have a name starting with the character '$' should be
+ *           considered to be 'class' methods.
+ *        2. You may add your own routines/methods to this skeleton. You may even
+ *           add your own class methods or modify existing methods.
+ ******************************************************************************/
+
+
+%replace inst_name_len by 20;
+
+dcl inst char(inst_name_len)var static init('skeleton');  /* default instance name */
+dcl 01 instance based,
+    05 inst_name char(inst_name_len) var,
+    05 object_name char(inst_name_len) var;
+
+
+/******************************************************************************
+ * Method:   $new
+ * Notes:    Class method to create a new instance of this class.
+ ******************************************************************************/
+
+$new: proc() returns(pointer);
+
+dcl newptr pointer init(NULL);
+
+alloc instance set(newptr);                            /* create shared instance variab;es */
+if newptr = NULL then return;
+newptr->inst_name = inst;                              /* set instance name */
+newptr->object_name = '';                              /* set blank object name */
+call init(newptr);                                     /* call user public init method */
+
+return(newptr);
+
+end $new;
+
+
+/******************************************************************************
+ * Method:   $delete
+ * Notes:    Delete instance of this class.
+ ******************************************************************************/
+
+$delete: proc(instptr);
+
+dcl instptr pointer;
+
+if instptr = NULL then return;
+free instptr->instance;
+
+return;
+
+end $delete;
+
+
+/******************************************************************************
+ * Method:   $string
+ * Notes:    Return the name of the instance.
+ ******************************************************************************/
+
+$string: proc(instptr) returns(char(inst_name_len) var);
+
+dcl instptr pointer;
+
+if instptr = NULL then return;
+
+return(instptr->inst_name);
+
+end $string;
+
+
+/******************************************************************************
+ * Method:   init
+ * Notes:    Public initialization method.
+ ******************************************************************************/
+
+init: proc(instptr);
+
+dcl instptr pointer;
+
+if instptr = NULL then return;
+
+return;
+
+end init;
+
+
+/******************************************************************************
+ * Method:   set_object_name
+ * Notes:    Set object name method.
+ ******************************************************************************/
+
+set_object_name: proc(instptr, name);
+
+dcl instptr pointer;
+dcl name char(inst_name_len) var;
+
+if instptr = NULL then return;
+instptr->object_name = name;
+
+return;
+
+end set_object_name;
+
+
+/******************************************************************************
+ * Method:   get_object_name
+ * Notes:    Get object name method.
+ ******************************************************************************/
+
+get_object_name: proc(instptr) returns(char(inst_name_len) var);
+
+dcl instptr pointer;
+dcl name char(inst_name_len) var;
+
+if instptr = NULL then return;
+instptr->object_name = name;
+
+return(instptr->object_name);
+
+end get_object_name;
+
+end ooclass;
+

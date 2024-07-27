@@ -1,0 +1,135 @@
+
+osentry: proc() options(main);
+
+dcl sysprint  file print;
+dcl isalnum   entry(char(1)) returns(char(1));
+dcl isalpha   entry(char(1)) returns(char(1));
+dcl isblank   entry(char(1)) returns(char(1));
+dcl isdigit   entry(char(1)) returns(char(1));
+dcl islower   entry(char(1)) returns(char(1));
+dcl isprint   entry(char(1)) returns(char(1));
+dcl ispunct   entry(char(1)) returns(char(1));
+dcl isupper   entry(char(1)) returns(char(1));
+dcl isxdigit  entry(char(1)) returns(char(1));
+dcl ismathsym entry(char(1)) returns(char(1));
+dcl istab     entry(char(1)) returns(char(1));
+dcl islf      entry(char(1)) returns(char(1));
+dcl iscr      entry(char(1)) returns(char(1));
+dcl retchar   char(1);
+
+put skip edit('Starting tests.') (a);
+
+retchar = isalnum('1');
+if retchar = '1' then put skip edit('"1" is an alphanum.') (a);
+else put skip edit('"1" is NOT alphanum.') (a);
+retchar = isalpha('e');
+if retchar = 'e' then put skip edit('"e" is an alphanum.') (a);
+else put skip edit('"e" is NOT alphanum.') (a);
+retchar = isalpha('A');
+if retchar = 'A' then put skip edit('"A" is an alphanum.') (a);
+else put skip edit('"A" is NOT alphanum.') (a);
+retchar = isalpha('*');
+if retchar = '*' then put skip edit('"*" is an alphanum.') (a);
+else put skip edit('"*" is NOT alphanum.') (a);
+
+retchar = isalpha('M');
+if retchar = 'M' then put skip edit('"M" is an alpha.') (a);
+else put skip edit('"M" is NOT alpha.') (a);
+retchar = isalpha('f');
+if retchar = 'f' then put skip edit('"f" is an alpha.') (a);
+else put skip edit('"f" is NOT alpha.') (a);
+retchar = isalpha('#');
+if retchar = '#' then put skip edit('"#" is an alpha.') (a);
+else put skip edit('"#" is NOT alpha.') (a);
+
+retchar = isblank(' ');
+if retchar = ' ' then put skip edit('" " is a blank.') (a);
+else put skip edit('" " is NOT a blank.') (a);
+retchar = isblank('5');
+if retchar = '5' then put skip edit('"5" is a blank.') (a);
+else put skip edit('"5" is NOT a blank.') (a);
+
+retchar = isdigit('6');
+if retchar = '6' then put skip edit('"6" is a digit.') (a);
+else put skip edit('"6" is NOT a digit.') (a);
+retchar = isdigit('o');
+if retchar = 'o' then put skip edit('"o" is not a digit.') (a);
+else put skip edit('"o" is NOT a digit.') (a);
+
+retchar = islower('g');
+if retchar = 'g' then put skip edit('"g" is a lower alpha.') (a);
+else put skip edit('"g" is NOT a lower alpha.') (a);
+retchar = islower('G');
+if retchar = 'G' then put skip edit('"G" is not a lower alpha.') (a);
+else put skip edit('"G" is NOT a lower alpha.') (a);
+
+retchar = isprint('@');
+if retchar = '@' then put skip edit('"@" is printable.') (a);
+else put skip edit('"@" is NOT a printable.') (a);
+retchar = isprint('EE'x);
+if retchar = 'EE'x then put skip edit('"EE"x is printable.') (a);
+else put skip edit('"EE"x is NOT printable.') (a);
+
+retchar = ispunct('!');
+if retchar = '!' then put skip edit('"!" is punctuation.') (a);
+else put skip edit('"!" is NOT a punctuation.') (a);
+retchar = ispunct('%');
+if retchar = '%' then put skip edit('"%" is punctuation.') (a);
+else put skip edit('"%"x is NOT punctuation.') (a);
+
+retchar = isupper('Z');
+if retchar = 'Z' then put skip edit('"Z" is upper alpha.') (a);
+else put skip edit('Z!" is NOT a upper alpha.') (a);
+retchar = isupper('v');
+if retchar = 'v' then put skip edit('"v" is upper alpha.') (a);
+else put skip edit('"v" is NOT upper alpha.') (a);
+retchar = isupper(';');
+if retchar = ';' then put skip edit('";" is upper alpha.') (a);
+else put skip edit('";" is NOT upper alpha.') (a);
+
+retchar = isxdigit('b');
+if retchar = 'b' then put skip edit('"b" is a hex digit.') (a);
+else put skip edit('"b" is NOT a hex digit.') (a);
+retchar = isxdigit('D');
+if retchar = 'D' then put skip edit('"D" is a hex digit.') (a);
+else put skip edit('"D" is NOT a hexdigit.') (a);
+retchar = isxdigit('5');
+if retchar = '5' then put skip edit('"5" is a hex digit.') (a);
+else put skip edit('"5" is NOT a hexdigit.') (a);
+retchar = isxdigit('t');
+if retchar = 't' then put skip edit('"t" is a hex digit.') (a);
+else put skip edit('"t" is NOT a hexdigit.') (a);
+
+retchar = ismathsym('+');
+if retchar = '+' then put skip edit('"+" is a math symbol.') (a);
+else put skip edit('"+" is NOT a math symbol.') (a);
+retchar = ismathsym('/');
+if retchar = '/' then put skip edit('"/" is a math symbol.') (a);
+else put skip edit('"/" is NOT a math symbol.') (a);
+retchar = ismathsym('&');
+if retchar = '&' then put skip edit('"&" is a math symbol.') (a);
+else put skip edit('"&" is NOT a math symbol.') (a);
+
+retchar = istab('09'x);
+if retchar = '09'x then put skip edit('"09"x is a tab.') (a);
+else put skip edit('"09"x is NOT a tab.') (a);
+
+retchar = islf('0A'x);
+if retchar = '0A'x then put skip edit('"0A"x is a linefeed.') (a);
+else put skip edit('"0A"x is NOT a linefeed.') (a);
+
+retchar = iscr('0D'x);
+if retchar = '0D'x then put skip edit('"0D"x is a carriage return.') (a);
+else put skip edit('"0D"x is NOT a carriage return.') (a);
+
+
+
+
+
+
+
+
+
+
+end osentry;
+

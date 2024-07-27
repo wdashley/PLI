@@ -1,0 +1,143 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!DOCTYPE refentry [
+<!ENTITY % sgml.features "IGNORE">
+<!ENTITY % xml.features "INCLUDE">
+<!ENTITY % DOCBOOK_ENTS PUBLIC "-//OASIS//ENTITIES DocBook Character Entities V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/dbcentx.mod">
+%DOCBOOK_ENTS;
+]>
+
+<refentry id="plic">
+
+<refmeta>
+<refentrytitle>ispp</refentrytitle>
+<manvolnum>1</manvolnum>
+<refmiscinfo>Iron Spring PL?I PreCompiler</refmiscinfo>
+</refmeta>
+
+<refnamediv>
+<refname>ispp</refname>
+<refpurpose>Iron Spring PL/I precompiler</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+
+<funcsynopsis>
+<funcsynopsisinfo>
+ispp [<emphasis role="underline">options</emphasis>] &lt;input file&gt; [-o &lt;output file&gt;]
+</funcsynopsisinfo>
+</funcsynopsis>
+
+</refsynopsisdiv>
+
+<refsect1><title>Description</title>
+<para>
+     <emphasis role='underline'>Options</emphasis> may be entered in any order.
+     The Linux shell requires that options containing () be enclosed in double quotes (").
+     <variablelist>
+         <varlistentry>
+             <term><emphasis role='bold'>&lt;-li&gt;</emphasis></term>
+             <listitem>
+                 <para>
+                     Tells the preprocessor to produce an “insource” listing. If
+                     this option is not specified a listing file containing only preprocessor
+                     messages will be generated.
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term><emphasis role='bold'>&lt;-m(m1[,m2[,m3[,m4]]])&gt;</emphasis></term>
+             <listitem>
+                 <para>
+                     Specifies the margins for the input and output files. m1 and m2 are the
+                     input margins, m3 and m4 are output. If -m is omitted the defaults for both
+                     are (1,100)
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term><emphasis role='bold'>&lt;-i include_dir&gt;</emphasis></term>
+             <listitem>
+                 <para>
+                     Directs the preprocessor to process include files. Without -I, the
+                     %INCLUDE statements are passed thru to the compiler for processing.
+                     This is a global option and is not specified on a file-by-file basis.
+                     – supplies the directorry for include files, defaults to “.”.
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term><emphasis role='bold'>&lt;"-cn(^¬)"&gt; and &lt;"-co(|)"&gt;</emphasis></term>
+             <listitem>
+                 <para>
+                     -cn specifies the characters to be used for the logical NOT (¬)
+                     character. The default is ‘AA’x, the ASCII character is
+                     ‘AC’x, other characters such as the caret (^-as shown)
+                      can be used, up to four characters.<sbr />
+                     -co specifies the characters to be used for OR. The default is ‘|’
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term><emphasis role='bold'>&lt;-I&gt;</emphasis></term>
+             <listitem>
+                 <para>
+                      directs the preprocessor to process include files. Without -I, the
+                      %INCLUDE statements are passed thru to the compiler for processing.
+                      This is a global option and is not specified on a file-by-file basis.
+                      – supplies the direcorry for include files, defaults to “.”.
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term><emphasis role='bold'>&lt;-p “sysparm string”;</emphasis></term>
+             <listitem>
+                 <para>
+                      Specifies a user-defined string to be passed to the preprocessor program
+                      through the builtin function SYSPARM. The format of this string is arbitrary,
+                      and the interpretion is left to the user program.
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term><emphasis role='bold'>&lt;-V&gt;</emphasis></term>
+             <listitem>
+                 <para>
+                     Requests the preprocessor to display the current version and exit.
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term><emphasis role='bold'>&lt;input file&gt;</emphasis></term>
+             <listitem>
+                 <para>
+                     The name of the input source file. The name format is arbitrary.
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term><emphasis role='bold'>&lt;output file&gt;</emphasis></term>
+             <listitem>
+                 <para>
+                     the name of the output file. The name format is arbitrary.
+                 </para>
+             </listitem>
+         </varlistentry>
+     </variablelist>
+</para>
+</refsect1>
+
+<refsect1><title>Standards</title>
+<para>
+    The Iron Spring PL/I precompiler is based on the IBM document "PL/I for MVS and VM Compiler 1.1".
+</para>
+</refsect1>
+
+<refsect1><title>Examples</title>
+<para>
+    The following are some examples invocations of plic.<sbr />
+    ispp "-cn(!)" strfuncs.pli -o strfuncs.dek<sbr />
+</para>
+</refsect1>
+
+
+</refentry>

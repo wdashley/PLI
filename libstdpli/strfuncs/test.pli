@@ -1,0 +1,251 @@
+/*----------------------------------------------------------------------------*/
+/*                                                                            */
+/* File:       main.pli (template)                                            */
+/*                                                                            */
+/* Author:     W. David Ashley                                                */
+/*                                                                            */
+/* Date:       2023-10-16                                                     */
+/*                                                                            */
+/* Copyright:  Copyright © 2023 W. David Ashley                               */
+/*             This source file is goverened by the The Open Software License */
+/*             3.0 which is included with the source code distribution.       */
+/*                                                                            */
+/* Notes:      This PL/I source file is the entry point from the Operating    */
+/*             System. Edit as necessary.                                     */
+/*                                                                            */
+/* Updates:    2023-10-16 WDA. Initial release.                               */
+/*                                                                            */
+/*----------------------------------------------------------------------------*/
+
+
+osentry: proc(args) options(main);
+
+/***************************/
+/* Argument data           */
+/***************************/
+
+dcl args     char(*) varying;
+
+/***************************/
+/* Static data             */
+/***************************/
+
+/* Since the following string is in static storage it wiil appear in the */
+/* program executable as readable text even if it is never referenced.   */
+dcl cpyrght  static char(90) varying init(
+              'Copyright © 2023 W. David Ashley. All rights reserved.');
+
+/***************************/
+/* Automatic data          */
+/***************************/
+
+dcl retword  char(50) varying;
+dcl retindex fixed bin(31);
+dcl retlength fixed bin(31);
+dcl retwords fixed bin(31);
+
+/***************************/
+/* Prototypes/BIFs/IO defs */
+/***************************/
+
+dcl sysprint print;
+dcl substr   builtin;
+dcl trim   builtin;
+
+/***************************/
+/* External entries        */
+/***************************/
+
+dcl word     entry(char(*) varying, fixed bin(31)) returns(char(50) varying);
+dcl wordindex entry(char(*) varying, fixed bin(31)) returns(fixed bin(31));
+dcl wordlength entry(char(*) varying, fixed bin(31)) returns(fixed bin(31));
+dcl words    entry(char(*) varying) returns(fixed bin(31));
+dcl c2d      entry(char(1)) returns(fixed bin(7));
+dcl d2c      entry(fixed bin(7)) returns(char(1));
+dcl pos      entry(char(30) varying, char(200) varying, fixed bin(31))
+              returns(fixed bin(31));
+dcl lastpos  entry(char(30) varying, char(200) varying, fixed bin(31))
+              returns(fixed bin(31));
+dcl delstring entry(char(200) varying, fixed bin(31), fixed bin(31))
+              returns(char(200) varying);
+dcl insert   entry(char(30) varying, char(200) varying, fixed bin(31))
+              returns(char(200) varying);
+dcl changestr entry(char(30) varying, char(200) varying, char(30) varying)
+              returns(char(200) varying);
+dcl d2x      entry(fixed bin(31)) returns(char(1001) varying);
+dcl c2x      entry(char(200) varying) returns(char(100) varying);
+dcl compare  entry(char(200) varying, char(200) varying) returns(fixed bin(31));
+dcl b2x      entry(char(200) varying) returns(char(200) varying);
+dcl countstr entry(char(30) varying, char(200) varying) returns(fixed bin(15));
+
+/******************************************************************************/
+/* Main program                                                               */
+/******************************************************************************/
+
+
+/* test the word function */
+put skip file(sysprint) list('Testing the WORD() function.');
+retword = word("Now is the time", 3);
+put skip file(sysprint) list("WORD('Now is the time',3) -> '" ||
+                             retword || "'");
+retword = word("Now is the time", 5);
+put skip file(sysprint) list("WORD('Now is the time',5) -> '" ||
+                             retword || "'");
+retword = word("Now is the time", 1);
+put skip file(sysprint) list("WORD('Now is the time',1) -> '" ||
+                             retword || "'");
+
+/* test the wordindex function */
+put skip file(sysprint);
+put skip file(sysprint) list('Testing the WORDINDEX() function.');
+retindex = wordindex("Now is the time", 3);
+put skip file(sysprint) list("WORDINDEX('Now is the time',3) -> '" ||
+                             trim(retindex) || "'");
+retindex = wordindex("Now is the time", 5);
+put skip file(sysprint) list("WORDINDEX('Now is the time',5) -> '" ||
+                             trim(retindex) || "'");
+retindex = wordindex("Now is the time", 1);
+put skip file(sysprint) list("WORDINDEX('Now is the time',1) -> '" ||
+                             trim(retindex) || "'");
+
+/* test the wordlength function */
+put skip file(sysprint);
+put skip file(sysprint) list('Testing the WORDLRNGTH() function.');
+retlength = wordlength("Now is the time", 3);
+put skip file(sysprint) list("WORDLENGHT('Now is the time',3) -> '" ||
+                             trim(retlength) || "'");
+retlength = wordlength("Now is the time", 5);
+put skip file(sysprint) list("WORDLENGTH('Now is the time',5) -> '" ||
+                             trim(retlength) || "'");
+retlength = wordlength("Now is the time", 1);
+put skip file(sysprint) list("WORDLENGTH('Now is the time',1) -> '" ||
+                             trim(retlength) || "'");
+
+/* test the wordlength function */
+put skip file(sysprint);
+put skip file(sysprint) list('Testing the WORDS() function.');
+retwords = words("Now is the time");
+put skip file(sysprint) list("WORDS('Now is the time')                  -> '" ||
+                             trim(retwords) || "'");
+retwords = words("Now is the time for a good men");
+put skip file(sysprint) list("WORDS('Now is the time for all good men') -> '" ||
+                             trim(retwords) || "'");
+retwords = words("");
+put skip file(sysprint) list("WORDS('')                                 -> '" ||
+                             trim(retwords) || "'");
+
+/* test the c2d function */
+put skip file(sysprint);
+put skip file(sysprint) list('Testing the C2D() function.');
+put skip file(sysprint) list("C2D('a') -> " || trim(c2d('a')));
+put skip file(sysprint) list("C2D('A') -> " || trim(c2d('A')));
+put skip file(sysprint) list("C2D('z') -> " || trim(c2d('z')));
+put skip file(sysprint) list("C2D('Z') -> " || trim(c2d('Z')));
+put skip file(sysprint) list("C2D('1') -> " || trim(c2d('1')));
+put skip file(sysprint) list("C2D('=') -> " || trim(c2d('=')));
+
+/* test the d2c function */
+put skip file(sysprint);
+put skip file(sysprint) list('Testing the D2C() function.');
+put skip file(sysprint) list("D2C(97)  -> " || trim(d2c(97)));
+put skip file(sysprint) list("D2C(65)  -> " || trim(d2c(65)));
+put skip file(sysprint) list("D2C(122) -> " || trim(d2c(122)));
+put skip file(sysprint) list("D2C(90)  -> " || trim(d2c(90)));
+put skip file(sysprint) list("D2C(49)  -> " || trim(d2c(49)));
+put skip file(sysprint) list("D2C(61)  -> " || trim(d2c(61)));
+
+/* test the pos function */
+put skip file(sysprint);
+put skip file(sysprint) list('Testing the POS() function.');
+put skip file(sysprint) list("POS('day', 'Saturday', 1)   -> " || "'" ||
+                             trim(pos('day', 'Saturday', 1)) || "'");
+put skip file(sysprint) list("POS('x', 'abc def ghi', 1)  -> " || "'" ||
+                             trim(pos('x', 'abc def ghi', 1)) || "'");
+put skip file(sysprint) list("POS(' ', 'abc def ghi', 1)  -> " || "'" ||
+                             trim(pos(' ', 'abc def ghi', 1)) || "'");
+put skip file(sysprint) list("POS('gh', 'abc def ghi', 1) -> " || "'" ||
+                             trim(pos('gh', 'abc def ghi', 1)) || "'");
+
+/* test the lasrpos function */
+put skip file(sysprint);
+put skip file(sysprint) list('Testing the LASTPOS() function.');
+put skip file(sysprint) list("LASTPOS('tur', 'Saturday', 6) -> " ||
+                             trim(lastpos('tur', 'Saturday', 6)));
+put skip file(sysprint) list("LASTPOS('Sat', 'Saturday', 6) -> " ||
+                             trim(lastpos('Sat', 'Saturday', 6)));
+put skip file(sysprint) list("LASTPOS('Fri', 'Saturday', 6) -> " ||
+                             trim(lastpos('Fri', 'Saturday', 6)));
+
+/* test the delstring function */
+put skip file(sysprint);
+put skip file(sysprint) list('Testing the DELSTRING() function.');
+put skip file(sysprint) list("delstring('abcd', 3, 2)  -> " || "'" ||
+                             delstring('abcd', 3, 2) || "'");
+put skip file(sysprint) list("delstring('abcde', 3, 2) -> " || "'" ||
+                             delstring('abcde', 3, 2) || "'");
+put skip file(sysprint) list("delstring('abcde', 6, 0) -> " || "'" ||
+                             delstring('abcde', 6, 0) || "'");
+put skip file(sysprint) list("delstring('abcde', 1, 2) -> " || "'" ||
+                             delstring('abcde', 1, 2) || "'");
+put skip file(sysprint) list("delstring('abcde', 1, 1) -> " || "'" ||
+                             delstring('abcde', 1, 1) || "'");
+
+/* test the insert function */
+put skip file(sysprint);
+put skip file(sysprint) list('Testing the INSERT() function.');
+put skip file(sysprint) list("insert(' ', 'abcdef', 3) -> " || "'" ||
+                             insert(' ', 'abcdef', 3) || "'");
+put skip file(sysprint) list("insert('123', 'abc', 5)  -> " || "'" ||
+                             insert('123', 'abc', 5) || "'");
+put skip file(sysprint) list("insert('123', 'abc', 0)  -> " || "'" ||
+                             insert('123', 'abc', 0) || "'");
+
+/* test the changestr function */
+put skip file(sysprint);
+put skip file(sysprint) list('Testing the CHANGESTR() function.');
+put skip file(sysprint) list("changestr('1', '101100', 'x') -> " || "'" ||
+                             changestr('1', '101100', 'x') || "'");
+put skip file(sysprint) list("changestr('1', '101101', 'x') -> " || "'" ||
+                             changestr('1', '101101', 'x') || "'");
+
+/* test the d2x function */
+put skip file(sysprint);
+put skip file(sysprint) list('Testing the D2X() function.');
+put skip file(sysprint) list("d2x(16)    -> " || "'" || d2x(16) || "'");
+put skip file(sysprint) list("d2x(256)   -> " || "'" || d2x(256) || "'");
+put skip file(sysprint) list("d2x(300)   -> " || "'" || d2x(300) || "'");
+put skip file(sysprint) list("d2x(17100) -> " || "'" || d2x(17100) || "'");
+
+/* test the c2x function */
+put skip file(sysprint);
+put skip file(sysprint) list('Testing the C2X() function.');
+put skip file(sysprint) list("c2x('David') -> " || "'" || c2x('David') || "'");
+
+/* test the compare function */
+put skip file(sysprint);
+put skip file(sysprint) list('Testing the COMPARE() function.');
+put skip file(sysprint) list("compare('David', 'David ') -> " ||
+                              trim(compare('David', 'David ')));
+put skip file(sysprint) list("compare('David', 'Davis ') -> " ||
+                              trim(compare('David', 'Davis ')));
+
+/* test the b2x function */
+put skip file(sysprint);
+put skip file(sysprint) list('Testing the B2X() function.');
+put skip file(sysprint) list("b2x('1011 0011')           -> " || b2x('1011 0011'));
+put skip file(sysprint) list("b2x('1011 0011 0101 1001') -> " || b2x('1011 0011 0101 1001'));
+
+/* test the countstr function */
+put skip file(sysprint);
+put skip file(sysprint) list('Testing the COUNTSTR() function.');
+put skip file(sysprint) list("countstr('xxx', 'This is xxx axxx test string') -> " ||
+                             trim(countstr('xxx', 'This is xxx axxx test string')));
+put skip file(sysprint) list("countstr('xxx', 'This is a test string')        -> " ||
+                             trim(countstr('xxx', 'This is a test string')));
+put skip file(sysprint) list("countstr('xxx', 'xxxxxxxxx')                    -> " ||
+                             trim(countstr('xxx', 'xxxxxxxxx')));
+
+return;
+
+end osentry;
+

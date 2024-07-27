@@ -1,0 +1,427 @@
+/*----------------------------------------------------------------------------*/
+/* File:       cfuncdatetime.pli (package)                                    */
+/* Author:     W. David Ashley                                                */
+/* Date:       2024-06-01                                                     */
+/* Copyright:  Copyright © 2024 W. David Ashley                               */
+/*             This source file is goverened by the The Open Software License  */
+/*             3.0 which is included with the source code distribution.       */
+/* Notes:      This PL/I source file is a package containing functions that    */
+/*             manipulate and display dates and times using libc functions.   */
+/*             These function correct for timezone and daylight savings.      */
+/* Updates:    2024-06-09 WDA. Initial release.                               */
+/*----------------------------------------------------------------------------*/
+
+
+cfuncdatetime: package exports(*);
+
+
+/*----------------------------------------------------------------------------*/
+/* C function definitions                                                      */
+/*----------------------------------------------------------------------------*/
+
+dcl time entry(ptr) returns(fixed bin(31)) ext('time')
+      options(assembler linkage(system));
+dcl localtime entry(ptr) returns(ptr) ext('localtime')
+      options(assembler linkage(system));
+dcl strftime entry(ptr, fixed bin(31), ptr, ptr)
+      returns(fixed bin(31)) ext('strftime')
+      options(assembler linkage(system));
+
+
+/*----------------------------------------------------------------------------*/
+/* Global variables                                                           */
+/*----------------------------------------------------------------------------*/
+
+dcl months(12) static char(9) varying
+    init("January", "Febuary", "March", "April", "May", "June",
+         "July", "August", "September", "October", "November",
+         "December");
+dcl weekdays(0:6) static char(9) varying
+    init('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday',
+         'Saturday');
+dcl sysprint file output;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   c_isodate.pli                                                  */
+/* Notes:      Converts the current date/time to ISO date format.             */
+/*             Uses timezone and daylight savings values.                     */
+/*----------------------------------------------------------------------------*/
+
+c_isodate: proc() returns(char(23));
+
+dcl isodt    char(24);
+dcl tm_ptr   ptr;
+dcl time_t   fixed bin(31);
+dcl size_t   fixed bin(31);
+dcl term     unsigned fixed bin(8) init(0);
+dcl termchr  char(1) based(addr(term));         /* null terminator            */
+dcl fmt      char(10);
+dcl substr   builtin;
+dcl addr     builtin;
+
+time_t = time(addr(time_t));
+tm_ptr = localtime(addr(time_t));
+/* this is a valid short form of the full iso date format */
+fmt = '%FT%T.000' || termchr;
+size_t = strftime(addr(isodt), 24, addr(fmt), tm_ptr);
+substr(isodt, size_t + 1) = ' ';
+
+return(isodt);
+
+end c_isodate;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   c_date_e.pli                                                   */
+/* Notes:      Converts the current date to European format. The format is    */
+/*             dd/mm/yy. Uses timezone and daylight savings values.           */
+/*----------------------------------------------------------------------------*/
+
+c_date_e: proc() returns(char(8));
+
+dcl tm_ptr   ptr;
+dcl time_t   fixed bin(31);
+dcl size_t   fixed bin(31);
+dcl term     unsigned fixed bin(8) init(0);
+dcl termchr  char(1) based(addr(term));         /* null terminator            */
+dcl fmt      char(10);
+dcl substr   builtin;
+dcl addr     builtin;
+dcl eur_date char(9);
+
+time_t = time(addr(time_t));
+tm_ptr = localtime(addr(time_t));
+fmt = '%d/%m/%y' || termchr;
+size_t = strftime(addr(eur_date), 9, addr(fmt), tm_ptr);
+
+return(substr(eur_date, 1, 8));
+
+end c_date_e;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   c_date_m.pli                                                   */
+/* Notes:      Converts the current month to its Englist name.                */
+/*             Uses timezone and daylight savings values.                     */
+/*----------------------------------------------------------------------------*/
+
+c_date_m: proc() returns(char(9) varying);
+
+dcl tm_ptr   ptr;
+dcl time_t   fixed bin(31);
+dcl size_t   fixed bin(31);
+dcl term     unsigned fixed bin(8) init(0);
+dcl termchr  char(1) based(addr(term));         /* null terminator            */
+dcl fmt      char(10);
+dcl month    char(10);
+dcl substr   builtin;
+dcl addr     builtin;
+
+time_t = time(addr(time_t));
+tm_ptr = localtime(addr(time_t));
+fmt = '%B' || termchr;
+size_t = strftime(addr(month), 10, addr(fmt), tm_ptr);
+
+return(substr(month, 1, size_t));
+
+end c_date_m;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   c_date_n.pli                                                     */
+/* Notes:      Converts the current month to its normal English format.       */
+/*             Uses timezone and daylight savings values.                     */
+/*----------------------------------------------------------------------------*/
+
+c_date_n: proc() returns(char(10);
+
+dcl tm_ptr   ptr;
+dcl time_t   fixed bin(31);
+dcl size_t   fixed bin(31);
+dcl term     unsigned fixed bin(8) init(0);
+dcl termchr  char(1) based(addr(term));         /* null terminator            */
+dcl fmt      char(10);
+dcl dt       char(11);
+dcl substr   builtin;
+dcl addr     builtin;
+
+time_t = time(addr(time_t));
+tm_ptr = localtime(addr(time_t));
+fmt = '%d %m %Y' || termchr;
+size_t = strftime(addr(dt), 11, addr(fmt), tm_ptr);
+
+return(substr(dt, 1, size_t));
+
+end c_date_n;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   c_date_u.pli                                                   */
+/* Notes:      Converts the current date to its standard USA format.          */
+/*             Uses timezone and daylight savings values.                     */
+/*----------------------------------------------------------------------------*/
+
+c_date_u: proc() returns(char(8);
+
+dcl tm_ptr   ptr;
+dcl time_t   fixed bin(31);
+dcl size_t   fixed bin(31);
+dcl term     unsigned fixed bin(8) init(0);
+dcl termchr  char(1) based(addr(term));         /* null terminator            */
+dcl fmt      char(10);
+dcl ret_dt   char(9);
+dcl substr   builtin;
+dcl addr     builtin;
+
+time_t = time(addr(time_t));
+tm_ptr = localtime(addr(time_t));
+fmt = '%D' || termchr;
+size_t = strftime(addr(ret_dt), 11, addr(fmt), tm_ptr);
+
+return(substr(ret_dt, 1, size_t));
+
+end c_date_u;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   c_date_w.pli                                                     */
+/* Notes:      Return the current weekday,                                    */
+/*             Uses timezone and daylight savings values.                     */
+/*----------------------------------------------------------------------------*/
+
+c_date_w: proc() returns(char(9) varying;
+
+dcl tm_ptr   ptr;
+dcl time_t   fixed bin(31);
+dcl size_t   fixed bin(31);
+dcl term     unsigned fixed bin(8) init(0);
+dcl termchr  char(1) based(addr(term));         /* null terminator            */
+dcl fmt      char(10);
+dcl ret_dt   char(9);
+dcl substr   builtin;
+dcl addr     builtin;
+
+time_t = time(addr(time_t));
+tm_ptr = localtime(addr(time_t));
+fmt = '%w' || termchr;
+size_t = strftime(addr(ret_dt), 11, addr(fmt), tm_ptr);
+
+return(weekdays(substr(ret_dt, 1, size_t)));
+
+end c_date_w;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   c_date_o.pli                                                   */
+/* Notes:      Return the current date in ordered format.                     */
+/*             Uses timezone and daylight savings values.                     */
+/*----------------------------------------------------------------------------*/
+
+c_date_o: proc() returns(char(8);
+
+dcl tm_ptr   ptr;
+dcl time_t   fixed bin(31);
+dcl size_t   fixed bin(31);
+dcl term     unsigned fixed bin(8) init(0);
+dcl termchr  char(1) based(addr(term));         /* null terminator            */
+dcl fmt      char(10);
+dcl ret_dt   char(9);
+dcl substr   builtin;
+dcl addr     builtin;
+
+time_t = time(addr(time_t));
+tm_ptr = localtime(addr(time_t));
+fmt = '%y/%m/%d' || termchr;
+size_t = strftime(addr(ret_dt), 9, addr(fmt), tm_ptr);
+
+return(substr(ret_dt, 1, size_t));
+
+end c_date_o;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   c_date_s.pli                                                   */
+/* Notes:      Return the standard base date.                                 */
+/*             Uses timezone and daylight savings values.                     */
+/*----------------------------------------------------------------------------*/
+
+c_date_s: proc() returns(char(8));
+
+dcl tm_ptr   ptr;
+dcl time_t   fixed bin(31);
+dcl size_t   fixed bin(31);
+dcl term     unsigned fixed bin(8) init(0);
+dcl termchr  char(1) based(addr(term));         /* null terminator            */
+dcl fmt      char(10);
+dcl ret_dt   char(9);
+dcl substr   builtin;
+dcl addr     builtin;
+
+time_t = time(addr(time_t));
+tm_ptr = localtime(addr(time_t));
+fmt = '%Y%m%d' || termchr;
+size_t = strftime(addr(ret_dt), 9, addr(fmt), tm_ptr);
+
+return(substr(ret_dt, 1, 8));
+
+end c_date_s;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   c_time_l.pli                                                   */
+/* Notes:      Return the time in standard format.                            */
+/*             Uses timezone and daylight savings values.                     */
+/*----------------------------------------------------------------------------*/
+
+c_time_l: proc() returns(char(12));
+
+dcl tm_ptr   ptr;
+dcl time_t   fixed bin(31);
+dcl size_t   fixed bin(31);
+dcl term     unsigned fixed bin(8) init(0);
+dcl termchr  char(1) based(addr(term));         /* null terminator            */
+dcl fmt      char(10);
+dcl ret_tm   char(13);
+dcl substr   builtin;
+dcl addr     builtin;
+
+time_t = time(addr(time_t));
+tm_ptr = localtime(addr(time_t));
+fmt = '%T.000' || termchr;
+size_t = strftime(addr(ret_tm), 13, addr(fmt), tm_ptr);
+
+return(substr(ret_tm, 1, size_t));
+
+end c_time_l;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   c_time_c.pli                                                   */
+/* Notes:      Return the time in civil format.                               */
+/*             Uses timezone and daylight savings values.                     */
+/*----------------------------------------------------------------------------*/
+
+c_time_c: proc() returns(char(8));
+
+dcl tm_ptr   ptr;
+dcl time_t   fixed bin(31);
+dcl size_t   fixed bin(31);
+dcl term     unsigned fixed bin(8) init(0);
+dcl termchr  char(1) based(addr(term));         /* null terminator            */
+dcl fmt      char(10);
+dcl ret_tm   char(9);
+dcl substr   builtin;
+dcl addr     builtin;
+
+time_t = time(addr(time_t));
+tm_ptr = localtime(addr(time_t));
+fmt = '%I:%M %p' || termchr;
+size_t = strftime(addr(ret_tm), 9, addr(fmt), tm_ptr);
+
+return(substr(ret_tm, 1, size_t));
+
+end c_time_c;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   c_time_h.pli                                                   */
+/* Notes:      Return the number of hours since midnight.                     */
+/*             Uses timezone and daylight savings values.                     */
+/*----------------------------------------------------------------------------*/
+
+c_time_h: proc() returns(char(2));
+
+dcl tm_ptr   ptr;
+dcl time_t   fixed bin(31);
+dcl size_t   fixed bin(31);
+dcl term     unsigned fixed bin(8) init(0);
+dcl termchr  char(1) based(addr(term));         /* null terminator            */
+dcl fmt      char(10);
+dcl ret_tm   char(9);
+dcl substr   builtin;
+dcl addr     builtin;
+
+time_t = time(addr(time_t));
+tm_ptr = localtime(addr(time_t));
+fmt = '%H' || termchr;
+size_t = strftime(addr(ret_tm), 9, addr(fmt), tm_ptr);
+
+return(substr(ret_tm, 1, size_t));
+
+end c_time_h;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   c_time_m.pli                                                   */
+/* Notes:      Return the number of hours since midnight.                     */
+/*             Uses timezone and daylight savings values.                     */
+/*----------------------------------------------------------------------------*/
+
+c_time_m: proc() returns(char(4) varying);
+
+dcl tm_ptr   ptr;
+dcl time_t   fixed bin(31);
+dcl size_t   fixed bin(31);
+dcl term     unsigned fixed bin(8) init(0);
+dcl termchr  char(1) based(addr(term));         /* null terminator            */
+dcl fmt      char(10);
+dcl ret_tm   char(9);
+dcl minutes  fixed bin(15);
+dcl substr   builtin;
+dcl addr     builtin;
+dcl ltrim    builtin;
+
+time_t = time(addr(time_t));
+tm_ptr = localtime(addr(time_t));
+fmt = '%H' || termchr;
+size_t = strftime(addr(ret_tm), 9, addr(fmt), tm_ptr);
+minutes = substr(ret_tm, 1, size_t) * 60;
+fmt = '%M' || termchr;
+size_t = strftime(addr(ret_tm), 9, addr(fmt), tm_ptr);
+minutes = minutes + substr(ret_tm, 1, size_t);
+put string(ret_tm) edit(minutes) (p'9999');
+ret_tm = ltrim(ret_tm, '0');
+
+return(ret_tm);
+
+end c_time_m;
+
+
+/*----------------------------------------------------------------------------*/
+/* Function:   c_time_s.pli                                                   */
+/* Notes:      Return the number of seconds since midnight.                   */
+/*             Uses timezone and daylight savings values.                     */
+/*----------------------------------------------------------------------------*/
+
+c_time_s: proc() returns(char(5) varying);
+
+dcl tm_ptr   ptr;
+dcl time_t   fixed bin(31);
+dcl size_t   fixed bin(31);
+dcl term     unsigned fixed bin(8) init(0);
+dcl termchr  char(1) based(addr(term));         /* null terminator            */
+dcl fmt      char(10);
+dcl ret_tm   char(9);
+dcl minutes  fixed bin(15);
+dcl substr   builtin;
+dcl addr     builtin;
+dcl ltrim    builtin;
+
+time_t = time(addr(time_t));
+tm_ptr = localtime(addr(time_t));
+fmt = '%H' || termchr;
+size_t = strftime(addr(ret_tm), 9, addr(fmt), tm_ptr);
+minutes = substr(ret_tm, 1, size_t) * 60;
+fmt = '%M' || termchr;
+size_t = strftime(addr(ret_tm), 9, addr(fmt), tm_ptr);
+minutes = minutes + substr(ret_tm, 1, size_t);
+put string(ret_tm) edit(minutes * 60) (p'99999');
+ret_tm = ltrim(ret_tm, '0');
+
+return(ret_tm);
+
+end c_time_s;
+
+end cfuncdatetime;
+

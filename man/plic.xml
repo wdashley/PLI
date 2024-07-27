@@ -1,0 +1,185 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!DOCTYPE refentry [
+<!ENTITY % sgml.features "IGNORE">
+<!ENTITY % xml.features "INCLUDE">
+<!ENTITY % DOCBOOK_ENTS PUBLIC "-//OASIS//ENTITIES DocBook Character Entities V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/dbcentx.mod">
+%DOCBOOK_ENTS;
+]>
+
+<refentry id="plic">
+
+<refmeta>
+<refentrytitle>plic</refentrytitle>
+<manvolnum>1</manvolnum>
+<refmiscinfo>Iron Spring PL?I Compiler</refmiscinfo>
+</refmeta>
+
+<refnamediv>
+<refname>plic</refname>
+<refpurpose>Iron Spring PL/I compiler</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+
+<funcsynopsis>
+<funcsynopsisinfo>
+plic [<emphasis role="underline">options</emphasis>] &lt;input files&gt; [-o &lt;output file&gt;]
+</funcsynopsisinfo>
+</funcsynopsis>
+
+</refsynopsisdiv>
+
+<refsect1><title>Description</title>
+<para>
+     <emphasis role='underline'>Options</emphasis> may be entered in any order.
+     The Linux shell requires that options containing () be enclosed in double quotes (").
+     <variablelist>
+         <varlistentry>
+             <term><emphasis role='bold'>&lt;output options&gt;</emphasis></term>
+             <listitem>
+                 <para>
+                     -S | -C | -L<sbr />
+                     S = generate assembler (symbolic) output<sbr />
+                     C = generate compiled (object) output<sbr />
+                     L = generated linked (EXE or DLL) output
+                         (this option not currently implemented.}<sbr />
+                     N = generate statement number table to provide
+                         information for run-time error messages<sbr />
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term><emphasis role='bold'>&lt;include options&gt;</emphasis></term>
+             <listitem>
+                 <para>
+                     -i&lt;directory&gt;<sbr />
+                     where &lt;directory&gt; is the absolute or relative path 
+                     to a directory to be searched for %INCLUDE files.
+                     This option may be used more than once on the command line,
+                     and directories will be searched in the order listed.
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term><emphasis role='bold'>&lt;listing options&gt;</emphasis></term>
+             <listitem>
+                 <para>
+                     -l[siaxgmov]<sbr />
+                     one or more of [siaxgmov] may be entered, in any order as -lsx<sbr />
+                     -ls = list source<sbr />
+                     -li = list insource<sbr />
+                     -la = list attributes<sbr />
+                     -lx = list cross-reference<sbr />
+                     -lg = list aggregates<sbr />
+                     -lm = list generated code in a format similar to an assembly listing<sbr /> 
+		             -lo = list procedure map (statement offset table)<sbr />
+                     -lv = list additional warning messages<sbr />           
+                     Currently, the insource listing is not available.
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term><emphasis role='bold'>&lt;source margins&gt;</emphasis></term>
+             <listitem>
+                 <para>
+                     -m(start[,end])<sbr />
+                     This option defines the first and last positions of each
+                     input line that contain input for the compiler.  If this
+                     option is omitted the source is assumed to be the entire line.
+                     This option is included for compatibility with mainframe compilers
+                     which would use, for example, -m(2,72).
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term><emphasis role='bold'>&lt;character substitutions&gt;</emphasis></term>
+             <listitem>
+                 <para>
+                     -cn(&lt;list&gt;) and/or -co(&lt;list&gt;)<sbr />
+                     This option defines up to four characters each to be used as
+                     substitutions for the NOT(¬) [-cn()] and/or OR(|) [-co()]
+                     operator IN ADDITION TO the defaults.  The caret (^) is
+                     a metacharacter for the OS/2 command processor; if the
+                     caret is to be used, code two consecutive carets,
+                     for example -cn(^^).
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term><emphasis role='bold'>&lt;version info&gt;</emphasis></term>
+             <listitem>
+                 <para>
+                      -V<sbr />
+                      The compiler prints version and copyright information on stderr.
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term><emphasis role='bold'>&lt;error options&gt;</emphasis></term>
+             <listitem>
+                 <para>
+                      -e&lt;option&gt;<sbr />
+                      This option sets the errorlevel returned by the compiler for warning
+                      and error messages.  Normally compiler returns 4 if only warnings were
+                      issued, and 8 for any errors.<sbr />
+                      -ew tells the compiler to return 0 if only warning messages were issued.<sbr />
+                      -es tells the compiler to return 0 if any errors or warnings were issued.
+                      This option is useful when the compiler is run from a script or makefile.<sbr />
+                      -ed tells the compiler to display messages on stderr as well as stdout.
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term><emphasis role='bold'>&lt;misc options&gt;</emphasis></term>
+             <listitem>
+                 <para>
+                      -d&lt;option&gt;
+                      &lt;option&gt; is a character string, with or without enclosing quotes.<sbr />
+                      -dLIB tells the compiler it is compiling a standard run-time library procedure.<sbr />
+                      -dELF causes the compiler to generate ELF object files.<sbr />
+                      -dOMF causes the compiler to generate OMF object files.<sbr />
+                      The default is to generate the standard object format for the host OS;
+                      for OS/2 -dOMF is the default, for Linux -dELF is the default.
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term><emphasis role='bold'>&lt;optimization option&gt;</emphasis></term>
+             <listitem>
+                 <para>
+                     -O enables optimizations
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term><emphasis role='bold'>&lt;input files&gt;</emphasis> and <emphasis role='bold'>&lt;output files&gt;</emphasis></term>
+             <listitem>
+                 <para>
+                     are absolute or relative path names.  Only one input and one
+                     one output file are currently allowed.  If the output file is omitted the name
+                     is generated.  For example, PLIC -S abc.pli will create a file named abc.asm.
+                 </para>
+             </listitem>
+         </varlistentry>
+     </variablelist>
+</para>
+</refsect1>
+
+<refsect1><title>Standards</title>
+<para>
+    The Iron Spring PL/I compiler is based on the IBM document "PL/I for MVS and VM Compiler 1.1" with a few exceptions
+    and additions.
+</para>
+</refsect1>
+
+<refsect1><title>Examples</title>
+<para>
+    The following are some examples invocations of plic.<sbr />
+        plic -C "-cn(!)" strfuncs.pli -o strfuncs.o<sbr />
+        plic -C -lsax "-cn(!)" funcs.pli -o funcs.o<sbr />
+        plic -C -ls -m(2,72) "-cn(!)" strfuncs.pli -o strfuncs.o<sbr />
+</para>
+</refsect1>
+
+
+</refentry>

@@ -1,0 +1,101 @@
+'\" t
+.\"     Title: ispp
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 07/26/2024
+.\"    Manual: Iron Spring PL?I PreCompiler
+.\"    Source: Iron Spring PL?I PreCompiler
+.\"  Language: English
+.\"
+.TH "ISPP" "1" "07/26/2024" "Iron Spring PL?I PreCompiler" "Iron Spring PL?I PreCompiler"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+ispp \- Iron Spring PL/I precompiler
+.SH "SYNOPSIS"
+.sp
+.ft B
+.nf
+ispp [\fIoptions\fR] <input file> [\-o <output file>]
+.fi
+.ft
+.SH "DESCRIPTION"
+.PP
+\fIOptions\fR
+may be entered in any order\&. The Linux shell requires that options containing () be enclosed in double quotes (")\&.
+.PP
+\fB<\-li>\fR
+.RS 4
+Tells the preprocessor to produce an \(lqinsource\(rq listing\&. If this option is not specified a listing file containing only preprocessor messages will be generated\&.
+.RE
+.PP
+\fB<\-m(m1[,m2[,m3[,m4]]])>\fR
+.RS 4
+Specifies the margins for the input and output files\&. m1 and m2 are the input margins, m3 and m4 are output\&. If \-m is omitted the defaults for both are (1,100)
+.RE
+.PP
+\fB<\-i include_dir>\fR
+.RS 4
+Directs the preprocessor to process include files\&. Without \-I, the %INCLUDE statements are passed thru to the compiler for processing\&. This is a global option and is not specified on a file\-by\-file basis\&. \(en supplies the directorry for include files, defaults to \(lq\&.\(rq\&.
+.RE
+.PP
+\fB<"\-cn(^\(no)"> and <"\-co(|)">\fR
+.RS 4
+\-cn specifies the characters to be used for the logical NOT (\(no) character\&. The default is \(oqAA\(cqx, the ASCII character is \(oqAC\(cqx, other characters such as the caret (^\-as shown) can be used, up to four characters\&.
+.br
+
+\-co specifies the characters to be used for OR\&. The default is \(oq|\(cq
+.RE
+.PP
+\fB<\-I>\fR
+.RS 4
+directs the preprocessor to process include files\&. Without \-I, the %INCLUDE statements are passed thru to the compiler for processing\&. This is a global option and is not specified on a file\-by\-file basis\&. \(en supplies the direcorry for include files, defaults to \(lq\&.\(rq\&.
+.RE
+.PP
+\fB<\-p \(lqsysparm string\(rq;\fR
+.RS 4
+Specifies a user\-defined string to be passed to the preprocessor program through the builtin function SYSPARM\&. The format of this string is arbitrary, and the interpretion is left to the user program\&.
+.RE
+.PP
+\fB<\-V>\fR
+.RS 4
+Requests the preprocessor to display the current version and exit\&.
+.RE
+.PP
+\fB<input file>\fR
+.RS 4
+The name of the input source file\&. The name format is arbitrary\&.
+.RE
+.PP
+\fB<output file>\fR
+.RS 4
+the name of the output file\&. The name format is arbitrary\&.
+.RE
+.SH "STANDARDS"
+.PP
+The Iron Spring PL/I precompiler is based on the IBM document "PL/I for MVS and VM Compiler 1\&.1"\&.
+.SH "EXAMPLES"
+.PP
+The following are some examples invocations of plic\&.
+.br
+
+ispp "\-cn(!)" strfuncs\&.pli \-o strfuncs\&.dek
+.br
+
