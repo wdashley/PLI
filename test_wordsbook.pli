@@ -1,0 +1,69 @@
+/******************************************************************************
+ * File:       test_wordsbook.pli
+ * Author:     W. David Ashley
+ * Date:       2024-10-29
+ * Copyright:  Copyright © 2024 W. David Ashley
+ *             This source file is goverened by the The Open Software License
+ *             3.0 which is included with the source code distribution.
+ * Notes:
+ * Updates:    2024-10-29 WDA Initial release.
+ *
+ ******************************************************************************/
+
+
+osentry: proc options(main);
+
+dcl idoc(20) char(80) var init(
+   'From: Fake Company',
+   '      100 Any street',
+   '      Mycity, Mystate 99999',
+   ' ',
+   'To: {cust}',
+   '    {cust_street}',
+   '    {cust_city_state}',
+   ' ',
+   'Your account {cust_acct} is currently overdue {cust_overdue_days} days by',
+   '{cust_overdue_amt}. Please remit payment a soon as possible.',
+   ' ',
+   'Thank you,',
+   ' ',
+   ' ',
+   '{cust_rep}',
+   ' ',
+   ' ',
+   ' ',
+   ' ',
+   ' ');
+dcl odoc(20) char(80) var;
+dcl (i, retc) fixed bin(31);
+dcl sysprint output;
+dcl add_word entry(char(32) var, char(100) var) returns(fixed bin(31));
+dcl modify_word entry(char(32) var, char(100) var) returns(fixed bin(31));
+dcl delete_word entry(char(32) var) returns(fixed bin(31));
+dcl return_value entry(char(32) var) returns(char(100) var);
+dcl parse_text entry(char(100) var) returns(char(8192) var);
+
+/* fill out the wordsbook */
+retc = add_word('cust', 'Fake Customer');
+retc = add_word('cust_street', 'Fake Customer Street');
+retc = add_word('cust_city_state', 'Fake City, Fake State 99999');
+retc = add_word('cust_acct', '123-45-0987-13579');
+retc = add_word('cust_overdue_days', '30');
+retc = add_word('cust_overdue_amt', '$5639.00');
+retc = add_word('cust_rep', 'Mr. Customer Rep');
+
+/* fill out the letter */
+do i = 1 to dim(idoc, 1);
+    odoc(i) = parse_text(idoc(i));
+    end;
+
+
+/* print the output letter */
+do i = 1 to dim(odoc, 1);
+    put skip edit(odoc(i)) (a);
+    end;
+
+return;
+
+end osentry;
+
