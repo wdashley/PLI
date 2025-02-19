@@ -1,0 +1,115 @@
+/******************************************************************************
+* File:       bubblesort.pli
+ * Author:     W. David Ashley
+ * Date:       2025-02-19
+ * Copyright:  Copyright © 2025 W. David Ashley
+ *             This source file is goverened by the The Open Software License
+ *             3.0 which is included with the source code distribution.
+ * Notes:      A set of sort fuunctions for sorting PL/I data.
+ *             caller.
+ * Updates:    2025-02-19 WDA Initial release.
+ *
+ ******************************************************************************/
+
+
+/******************************************************************************
+ * Function:   bubble_sort
+ * Notes:      Perform a bubble sort of the array data.
+ ******************************************************************************/
+
+bubble_sort: proc(arr_ptr, data_type);
+dcl arr_ptr(*) pointer;
+dcl data_type char(8);
+dcl temp pointer;
+dcl i fixed bin(15);
+dcl no_more_swaps bit(1) init(false);;
+dcl true bit(1) init('1'b) static;
+dcl false bit(1) init('0'b) static;
+
+do until (no_more_swaps);
+    no_more_swaps = true;
+    do i = lbound(arr_ptr, 1) to hbound(arr_ptr,1) - 1;
+        if compare(arr_ptr(i), arr_ptr(i + 1), data_type) = 1 then do;
+            temp = arr_ptr(i);
+            arr_ptr(i) = arr_ptr(i + 1);
+            arr_ptr(i + 1) = temp;
+            no_more_swaps = true;
+            end;
+        end;
+    end;
+
+return;
+
+
+/******************************************************************************
+ * Function:   compare
+ * Notes:      Compare two variables to see if the first arg is greater than
+ *             the second arg.
+ ******************************************************************************/
+
+compare: proc(arr_ptr1, arr_ptr2, data_type) returns(fixed bin(15));
+
+dcl (arr_ptr1, arr_ptr2) pointer;
+dcl data_type char(8);
+
+select(data_type);
+    /* signed */
+    when ('fb7') begin;
+        dcl (temp1, temp2) fixed bin(7) based;
+        if arr_ptr1->temp1 > arr_ptr2->temp2 then return(1);
+        end;
+    when ('fb15') begin;
+        dcl (temp1, temp2) fixed bin(15) based ;
+        if arr_ptr1->temp1 > arr_ptr2->temp2 then return(1);
+        end;
+    when ('fb31') begin;
+        dcl (temp1, temp2) fixed bin(31) based;
+        if arr_ptr1->temp1 > arr_ptr2->temp2 then return(1);
+        end;
+/*
+    when ('fb63') begin;
+        dcl (temp1, temp2) fixed bin(63) based;
+        if arr_ptr1->temp1 > arr_ptr2->temp2 then return(1);
+        end;
+*/
+    /* unsigned */
+    when ('fb8') begin;
+        dcl (temp1, temp2) fixed bin(8) based;
+        if arr_ptr1->temp1 > arr_ptr2->temp2 then return(1);
+        end;
+    when ('fb16') begin;
+        dcl (temp1, temp2) fixed bin(16) based;
+        if arr_ptr1->temp1 > arr_ptr2->temp2 then return(1);
+        end;
+/*
+    when ('fb32') begin;
+        dcl (temp1, temp2) fixed bin(32) based;
+        if arr_ptr1->temp1 > arr_ptr2->temp2 then return(1);
+        end;
+    when ('fb64') begin;
+        dcl (temp1, temp2) fixed bin(64) based;
+        if arr_ptr1->temp1 > arr_ptr2->temp2 then return(1);
+        end;
+*/
+    when ('str') begin;
+        dcl (temp1, temp2) char(*) based;
+        if arr_ptr1->temp1 > arr_ptr2->temp2 then return(1);
+        end;
+    when ('bit') begin;
+        dcl (temp1, temp2) bit(*) based;
+        if arr_ptr1->temp1 > arr_ptr2->temp2 then return(1);
+        end;
+    when ('floatdec') begin;
+        dcl (temp1, temp2) float decimal based;
+        if arr_ptr1->temp1 > arr_ptr2->temp2 then return(1);
+        end;
+    when ('floatbin') begin;
+        dcl (temp1, temp2) float binary based;
+        if arr_ptr1->temp1 > arr_ptr2->temp2 then return(1);
+        end;
+    end;
+return(0);
+
+end compare;
+
+end bubble_sort;
